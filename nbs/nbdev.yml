@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "cjm-fasthtml-sse"
+  site-url: "https://cj-mills.github.io/cjm-fasthtml-sse"
+  description: "Real-time Server-Sent Events (SSE) and HTMX integration library for FastHTML with cross-tab synchronization support."
+  repo-branch: main
+  repo-url: "https://github.com/cj-mills/cjm-fasthtml-sse"
