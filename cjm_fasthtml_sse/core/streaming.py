@@ -13,6 +13,8 @@ from typing import Optional, Dict, Any, AsyncIterator, Union, List, Callable
 from datetime import datetime
 from dataclasses import dataclass
 
+from fasthtml.common import sse_message, FT
+
 # Import broadcast components
 from cjm_fasthtml_sse.core.broadcast import (
     SSEBroadcastManager, 
@@ -28,6 +30,10 @@ def format_sse_message(
     retry: Optional[int] = None  # Optional retry interval in milliseconds
 ) -> str:  # Formatted SSE message string
     "Format data as a Server-Sent Event message."
+
+    if isinstance(data, FT):
+        return sse_message(data, event=event)
+    
     lines = []
     
     if event:
@@ -60,6 +66,10 @@ def format_sse_comment(
     comment: str  # Comment text
 ) -> str:  # Formatted SSE comment
     "Format a comment for SSE (typically used for heartbeats)."
+
+    if isinstance(comment, FT):
+        return sse_message(comment)
+    
     return f": {comment}\n\n"
 
 # %% ../../nbs/core/streaming.ipynb 8
