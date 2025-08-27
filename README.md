@@ -38,11 +38,11 @@ graph LR
     core_decorators --> core_streaming
     core_decorators --> core_broadcast
     core_streaming --> core_broadcast
+    integrations_fasthtml --> components_builders
     integrations_fasthtml --> core_streaming
     integrations_fasthtml --> core_decorators
-    integrations_fasthtml --> components_builders
-    integrations_fasthtml --> components_monitors
     integrations_fasthtml --> core_broadcast
+    integrations_fasthtml --> components_monitors
 ```
 
 *8 cross-module dependencies detected*
@@ -587,9 +587,7 @@ from cjm_fasthtml_sse.components.monitors import (
     MonitorConfig,
     generate_monitor_script,
     generate_simple_monitor,
-    generate_connection_counter,
-    create_status_indicator_html,
-    create_default_status_indicators
+    generate_connection_counter
 )
 ```
 
@@ -616,22 +614,6 @@ def generate_simple_monitor(
 def generate_connection_counter(
 ) -> str:  # JavaScript code that tracks connection count
     "Generate JavaScript for counting active SSE connections."
-```
-
-``` python
-def create_status_indicator_html(
-    state: ConnectionState,  # Connection state
-    text: str,  # Display text
-    css_class: str = ""  # CSS classes to apply
-) -> str:  # HTML string for the indicator
-    "Create HTML for a connection status indicator."
-```
-
-``` python
-def create_default_status_indicators(
-    css_prefix: str = "sse-status"  # CSS class prefix for styling
-) -> Dict[ConnectionState, str]:  # Dictionary of HTML strings for each state
-    "Create default status indicators with styling."
 ```
 
 #### Classes

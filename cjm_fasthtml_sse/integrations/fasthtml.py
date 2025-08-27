@@ -40,8 +40,7 @@ from cjm_fasthtml_sse.components.monitors import (
     MonitorConfig,
     generate_monitor_script,
     generate_simple_monitor,
-    ConnectionState,
-    create_default_status_indicators
+    ConnectionState
 )
 
 # FastHTML imports
@@ -265,10 +264,10 @@ class FastHTMLSSE:
             )
             
             # Get status indicators
-            indicators = create_default_status_indicators("sse-status")
+            # indicators = create_default_status_indicators("sse-status")
             
             monitor_script = Script(
-                code=generate_monitor_script(monitor_config, indicators)
+                code=generate_monitor_script(monitor_config)
             )
         else:
             monitor_script = None

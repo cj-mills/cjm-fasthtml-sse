@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['ConnectionState', 'MonitorConfig', 'generate_monitor_script', 'generate_simple_monitor',
-           'generate_connection_counter', 'create_status_indicator_html', 'create_default_status_indicators']
+           'generate_connection_counter']
 
 # %% ../../nbs/components/monitors.ipynb 3
 from typing import Optional, Dict, Any, List, Callable
@@ -351,49 +351,3 @@ def generate_connection_counter(
     }
 })();
 """.strip()
-
-# %% ../../nbs/components/monitors.ipynb 14
-def create_status_indicator_html(
-    state: ConnectionState,  # Connection state
-    text: str,  # Display text
-    css_class: str = ""  # CSS classes to apply
-) -> str:  # HTML string for the indicator
-    "Create HTML for a connection status indicator."
-    # Simple emoji indicators
-    icons = {
-        ConnectionState.CONNECTING: "⏳",
-        ConnectionState.CONNECTED: "🟢",
-        ConnectionState.DISCONNECTED: "🔴",
-        ConnectionState.ERROR: "⚠️",
-        ConnectionState.RECONNECTING: "🔄",
-        ConnectionState.CLOSED: "⭕"
-    }
-    
-    icon = icons.get(state, "")
-    return f'<span class="{css_class}">{icon} {text}</span>'
-
-# %% ../../nbs/components/monitors.ipynb 15
-def create_default_status_indicators(
-    css_prefix: str = "sse-status"  # CSS class prefix for styling
-) -> Dict[ConnectionState, str]:  # Dictionary of HTML strings for each state
-    "Create default status indicators with styling."
-    return {
-        ConnectionState.CONNECTING: create_status_indicator_html(
-            ConnectionState.CONNECTING, "Connecting...", f"{css_prefix} {css_prefix}-connecting"
-        ),
-        ConnectionState.CONNECTED: create_status_indicator_html(
-            ConnectionState.CONNECTED, "Connected", f"{css_prefix} {css_prefix}-connected"
-        ),
-        ConnectionState.DISCONNECTED: create_status_indicator_html(
-            ConnectionState.DISCONNECTED, "Disconnected", f"{css_prefix} {css_prefix}-disconnected"
-        ),
-        ConnectionState.ERROR: create_status_indicator_html(
-            ConnectionState.ERROR, "Connection Error", f"{css_prefix} {css_prefix}-error"
-        ),
-        ConnectionState.RECONNECTING: create_status_indicator_html(
-            ConnectionState.RECONNECTING, "Reconnecting...", f"{css_prefix} {css_prefix}-reconnecting"
-        ),
-        ConnectionState.CLOSED: create_status_indicator_html(
-            ConnectionState.CLOSED, "Connection Closed", f"{css_prefix} {css_prefix}-closed"
-        )
-    }
