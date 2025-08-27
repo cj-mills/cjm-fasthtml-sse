@@ -25,7 +25,7 @@ from cjm_fasthtml_sse.core.broadcast import (
 # %% ../../nbs/core/streaming.ipynb 5
 def format_sse_message(
     data: Union[str, Dict[str, Any], Any],
-    event: Optional[str] = None,  # Optional event type
+    event: Optional[str] = 'message',  # Optional event type
     id: Optional[str] = None,  # Optional event ID
     retry: Optional[int] = None  # Optional retry interval in milliseconds
 ) -> str:  # Formatted SSE message string
