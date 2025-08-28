@@ -38,18 +38,10 @@ class SSEConnection:
     
     async def send(
         self,
-        data: Any,  # TODO: Add description
-        timeout: float = 1.0  # TODO: Add description
-    ) -> bool:  # TODO: Add return description
-        """Send data through the connection queue.
-        
-        Args:
-            data: Data to send
-            timeout: Timeout for the send operation
-            
-        Returns:
-            True if successful, False otherwise
-        """
+        data: Any,  # Data to send
+        timeout: float = 1.0  # Timeout for the send operation
+    ) -> bool:  # True if successful, False otherwise
+        """Send data through the connection queue."""
         try:
             await asyncio.wait_for(self.queue.put(data), timeout=timeout)
             self.last_activity = datetime.now()
@@ -61,7 +53,7 @@ class SSEConnection:
     
     async def heartbeat(
         self
-    ) -> str:  # TODO: Add return description
+    ) -> str:  # SSE formatted heartbeat message
         """Generate a heartbeat message."""
         self.last_activity = datetime.now()
         return f": heartbeat {self.connection_id} {self.last_activity.isoformat()}\n\n"
@@ -72,7 +64,7 @@ class SSEConnection:
     
     def is_active(
         self
-    ) -> bool:  # TODO: Add return description
+    ) -> bool:  # True if connection is active, False otherwise
         """Check if connection is active."""
         return self.state in [ConnectionState.CONNECTED, ConnectionState.CONNECTING]
 
@@ -82,13 +74,9 @@ class ConnectionRegistry:
     
     def __init__(
         self,
-        debug: bool = False  # TODO: Add description
+        debug: bool = False  # Enable debug logging
     ):
-        """Initialize the connection registry.
-        
-        Args:
-            debug: Enable debug logging
-        """
+        """Initialize the connection registry."""
         self.connections: Dict[str, SSEConnection] = {}
         self.connections_by_type: Dict[str, Set[str]] = {}
         self.lock = asyncio.Lock()
@@ -96,21 +84,12 @@ class ConnectionRegistry:
         self._counter = 0
     
     async def add_connection(self,
-                            conn_id: Optional[str] = None,  # TODO: Add description
-                            conn_type: str = "global",  # TODO: Add description
-                            queue_size: int = 100,  # TODO: Add description
-                            metadata: Optional[Dict[str, Any]] = None) -> SSEConnection:
-        """Add a new connection to the registry.
-        
-        Args:
-            conn_id: Optional connection ID (auto-generated if not provided)
-            conn_type: Type of connection (e.g., 'global', 'job', 'user')
-            queue_size: Size of the message queue
-            metadata: Optional metadata for the connection
-            
-        Returns:
-            The created SSEConnection
-        """
+                            conn_id: Optional[str] = None,  # Optional connection ID (auto-generated if not provided)
+                            conn_type: str = "global",  # Type of connection (e.g., 'global', 'job', 'user')
+                            queue_size: int = 100,  # Size of the message queue
+                            metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
+                            ) -> SSEConnection: # The created SSEConnection
+        """Add a new connection to the registry."""
         async with self.lock:
             if conn_id is None:
                 self._counter += 1
@@ -140,13 +119,9 @@ class ConnectionRegistry:
     
     async def remove_connection(
         self,
-        conn_id: str  # TODO: Add description
+        conn_id: str  # Connection ID to remove
     ):
-        """Remove a connection from the registry.
-        
-        Args:
-            conn_id: Connection ID to remove
-        """
+        """Remove a connection from the registry."""
         async with self.lock:
             if conn_id in self.connections:
                 connection = self.connections[conn_id]
@@ -166,30 +141,16 @@ class ConnectionRegistry:
     
     def get_connection(
         self,
-        conn_id: str  # TODO: Add description
-    ) -> Optional[SSEConnection]:  # TODO: Add return description
-        """Get a specific connection.
-        
-        Args:
-            conn_id: Connection ID
-            
-        Returns:
-            The connection if found, None otherwise
-        """
+        conn_id: str  # Connection ID
+    ) -> Optional[SSEConnection]:  # The connection if found, None otherwise
+        """Get a specific connection."""
         return self.connections.get(conn_id)
     
     def get_connections(
         self,
-        conn_type: Optional[str] = None  # TODO: Add description
-    ) -> list[SSEConnection]:  # TODO: Add return description
-        """Get connections, optionally filtered by type.
-        
-        Args:
-            conn_type: Optional connection type to filter by
-            
-        Returns:
-            List of connections
-        """
+        conn_type: Optional[str] = None  # Optional connection type to filter by
+    ) -> list[SSEConnection]:  # List of connections
+        """Get connections, optionally filtered by type."""
         if conn_type:
             conn_ids = self.connections_by_type.get(conn_type, set())
             return [self.connections[cid] for cid in conn_ids if cid in self.connections]
@@ -197,27 +158,16 @@ class ConnectionRegistry:
     
     def get_active_connections(
         self,
-        conn_type: Optional[str] = None  # TODO: Add description
-    ) -> list[SSEConnection]:  # TODO: Add return description
-        """Get active connections.
-        
-        Args:
-            conn_type: Optional connection type to filter by
-            
-        Returns:
-            List of active connections
-        """
+        conn_type: Optional[str] = None  # Optional connection type to filter by
+    ) -> list[SSEConnection]:  # List of active connections
+        """Get active connections."""
         connections = self.get_connections(conn_type)
         return [c for c in connections if c.is_active()]
     
     def get_stats(
         self
-    ) -> Dict[str, Any]:  # TODO: Add return description
-        """Get registry statistics.
-        
-        Returns:
-            Dictionary with connection statistics
-        """
+    ) -> Dict[str, Any]:  # Dictionary with connection statistics
+        """Get registry statistics."""
         active_conns = self.get_active_connections()
         
         return {
@@ -231,9 +181,10 @@ class ConnectionRegistry:
 def create_sse_element(endpoint: str,
                       element_id: Optional[str] = None,  # Optional element ID
                       swap_strategy: str = "message",  # HTMX swap strategy (message, innerHTML, outerHTML, etc.)
-                      hidden: bool = False,  # Whether to hide the element **attrs: Additional attributes for the element
-                      **attrs) -> Div:
-    "Create an SSE-enabled HTML element."
+                      hidden: bool = False,  # Whether to hide the element
+                      **attrs # Additional attributes for the element
+                      ) -> Div:  # SSE-enabled Div element configured for HTMX
+    """Create an SSE-enabled HTML element."""
     sse_attrs = {
         'hx_ext': 'sse',
         'sse_connect': endpoint,
@@ -290,8 +241,9 @@ def cleanup_sse_on_unload(
 # %% ../../nbs/core/connections.ipynb 11
 def create_reconnection_script(check_interval: int = 5000,
                               max_retries: int = 5,  # Maximum number of reconnection attempts
-                              debug: bool = False) -> Script:
-    "Create a script for automatic SSE reconnection."
+                              debug: bool = False  # Enable debug logging
+                              ) -> Script:  # Script element with reconnection logic
+    """Create a script for automatic SSE reconnection."""
     debug_str = "true" if debug else "false"
     
     reconnect_code = f"""
@@ -353,8 +305,9 @@ def create_reconnection_script(check_interval: int = 5000,
 
 # %% ../../nbs/core/connections.ipynb 12
 def create_connection_manager_script(registry_endpoint: str = "/sse/connections",
-                                    update_interval: int = 10000) -> Script:
-    "Create a script to manage and monitor connections."
+                                    update_interval: int = 10000  # Interval for updating connection stats (in milliseconds)
+                                    ) -> Script:  # Script element with connection management logic
+    """Create a script to manage and monitor connections."""
     manager_code = f"""
     (function() {{
         var registryEndpoint = '{registry_endpoint}';

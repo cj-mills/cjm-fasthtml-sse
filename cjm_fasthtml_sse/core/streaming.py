@@ -32,29 +32,18 @@ class SSEStream:
     
     def __init__(
         self,
-        config: Optional[StreamConfig] = None  # TODO: Add description
+        config: Optional[StreamConfig] = None  # Stream configuration
     ):
-        """Initialize the SSE stream.
-        
-        Args:
-            config: Stream configuration
-        """
+        """Initialize the SSE stream."""
         self.config = config or StreamConfig()
         self._active = False
         self._message_count = 0
     
     async def stream(self,
-                    data_source: Union[AsyncGenerator, Callable],
-                    transform_fn: Optional[Callable] = None) -> AsyncGenerator[str, None]:
-        """Stream data from a source through SSE.
-        
-        Args:
-            data_source: Async generator or callable that produces data
-            transform_fn: Optional function to transform data before sending
-            
-        Yields:
-            SSE formatted strings
-        """
+                    data_source: Union[AsyncGenerator, Callable], # Async generator or callable that produces data
+                    transform_fn: Optional[Callable] = None # Optional function to transform data before sending
+                    ) -> AsyncGenerator[str, None]: # SSE formatted strings
+        """Stream data from a source through SSE."""
         self._active = True
         
         try:
@@ -104,16 +93,9 @@ class SSEStream:
     
     def _format_message(
         self,
-        data: Any  # TODO: Add description
-    ) -> str:  # TODO: Add return description
-        """Format data as SSE message.
-        
-        Args:
-            data: Data to format
-            
-        Returns:
-            SSE formatted string
-        """
+        data: Any  # Data to format
+    ) -> str:  # SSE formatted string
+        """Format data as SSE message."""
         if isinstance(data, str):
             return f"data: {data}\n\n"
         elif isinstance(data, dict):
@@ -141,22 +123,12 @@ class OOBStreamBuilder:
         self.elements: List[Any] = []
     
     def add_element(self,
-                   element: Any,  # TODO: Add description
-                   target_id: Optional[str] = None,  # TODO: Add description
-                   swap_mode: str = "innerHTML",  # TODO: Add description
-                   wrap: bool = True) -> 'OOBStreamBuilder':
-        """Add an element with OOB swap configuration.
-        
-        Args:
-            element: The element to add
-            target_id: Target element ID for OOB swap
-            swap_mode: Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
-            wrap: If True and target_id is provided, wrap content in a Div with OOB attributes.
-                  If False, add OOB attributes directly to the element.
-            
-        Returns:
-            Self for chaining
-        """
+                   element: Any,  # The element to add
+                   target_id: Optional[str] = None,  # Target element ID for OOB swap
+                   swap_mode: str = "innerHTML",  # Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
+                   wrap: bool = True  # If True and target_id is provided, wrap content in a Div with OOB attributes. If False, add OOB attributes directly to the element
+                   ) -> 'OOBStreamBuilder':  # Self for chaining
+        """Add an element with OOB swap configuration."""
         if target_id:
             if wrap and swap_mode == "innerHTML":
                 # For innerHTML swaps, wrap the content in a container with the target ID
@@ -187,17 +159,9 @@ class OOBStreamBuilder:
     
     def add_elements(
         self,
-        elements: List[tuple]  # TODO: Add description
-    ) -> 'OOBStreamBuilder':  # TODO: Add return description
-        """Add multiple elements with OOB configurations.
-        
-        Args:
-            elements: List of tuples: (element, target_id, swap_mode, wrap) or
-                     (element, target_id, swap_mode) or (element, target_id) or (element,)
-            
-        Returns:
-            Self for chaining
-        """
+        elements: List[tuple]  # List of tuples: (element, target_id, swap_mode, wrap) or (element, target_id, swap_mode) or (element, target_id) or (element,)
+    ) -> 'OOBStreamBuilder':  # Self for chaining
+        """Add multiple elements with OOB configurations."""
         for item in elements:
             if len(item) == 4:
                 element, target_id, swap_mode, wrap = item
@@ -220,12 +184,8 @@ class OOBStreamBuilder:
     
     def build(
         self
-    ) -> str:  # TODO: Add return description
-        """Build the SSE message with all elements.
-        
-        Returns:
-            SSE formatted message
-        """
+    ) -> Div:  # Div with all elements
+        """Build the Div element with all elements."""
         if not self.elements:
             return ""
         
@@ -233,18 +193,12 @@ class OOBStreamBuilder:
             return sse_message(self.elements[0])
         
         # Wrap multiple elements in a container
-        # container = Div(*self.elements)
-        # return sse_message(container)
         return Div(*self.elements)
     
     def clear(
         self
-    ) -> 'OOBStreamBuilder':  # TODO: Add return description
-        """Clear all elements.
-        
-        Returns:
-            Self for chaining
-        """
+    ) -> 'OOBStreamBuilder':  # Self for chaining
+        """Clear all elements."""
         self.elements = []
         return self
 
@@ -252,13 +206,14 @@ class OOBStreamBuilder:
 async def sse_generator(data_source: Union[AsyncGenerator, List, Callable],
                        interval: float = 0.5,  # Interval between items for list sources
                        heartbeat: float = 30.0,  # Heartbeat interval
-                       transform: Optional[Callable] = None) -> AsyncGenerator[str, None]:
-    "Create an SSE generator from various data sources."
+                       transform: Optional[Callable] = None  # Optional function to transform data before sending
+                       ) -> AsyncGenerator[str, None]:
+    """Create an SSE generator from various data sources."""
     # Handle different data source types
     if isinstance(data_source, list):
         # Convert list to async generator
         async def list_generator():
-            "TODO: Add function description"
+            """Generate items from a list with interval delays."""
             for item in data_source:
                 yield item
                 await asyncio.sleep(interval)
@@ -275,9 +230,9 @@ async def sse_generator(data_source: Union[AsyncGenerator, List, Callable],
 # %% ../../nbs/core/streaming.ipynb 10
 def create_sse_endpoint(stream_fn: Callable,
                        content_type: str = "text/event-stream") -> Callable:
-    "Create an SSE endpoint from a streaming function."
+    """Create an SSE endpoint from a streaming function."""
     async def endpoint(*args, **kwargs):
-        "TODO: Add function description"
+        """SSE endpoint handler that wraps the stream function."""
         return EventStream(stream_fn(*args, **kwargs))
     
     return endpoint
@@ -285,12 +240,13 @@ def create_sse_endpoint(stream_fn: Callable,
 # %% ../../nbs/core/streaming.ipynb 11
 async def stream_updates(source_queue: asyncio.Queue,
                         transform_fn: Optional[Callable] = None,  # Optional transformation function
-                        config: Optional[StreamConfig] = None) -> AsyncGenerator[str, None]:
-    "Stream updates from an async queue."
+                        config: Optional[StreamConfig] = None  # Stream configuration settings
+                        ) -> AsyncGenerator[str, None]:
+    """Stream updates from an async queue."""
     config = config or StreamConfig()
     
     async def queue_generator():
-        "TODO: Add function description"
+        """Generate messages from the queue."""
         while True:
             message = await source_queue.get()
             yield message
@@ -302,10 +258,11 @@ async def stream_updates(source_queue: asyncio.Queue,
 # %% ../../nbs/core/streaming.ipynb 12
 def create_throttled_stream(source: AsyncGenerator,
                            min_interval: float = 0.1,  # Minimum interval between messages
-                           max_buffer: int = 10) -> AsyncGenerator:
-    "Create a throttled stream to prevent overwhelming clients."
+                           max_buffer: int = 10  # Maximum number of messages to buffer
+                           ) -> AsyncGenerator:  # Throttled async generator
+    """Create a throttled stream to prevent overwhelming clients."""
     async def throttled():
-        "TODO: Add function description"
+        """Generate throttled messages from the source."""
         last_sent = 0
         buffer = []
         

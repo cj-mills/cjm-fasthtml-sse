@@ -93,102 +93,66 @@ class BroadcastMessage:
     
     def to_dict(
             self
-        ) -> Dict[str, Any]:  # TODO: Add return description
+        ) -> Dict[str, Any]:  # Dictionary representation of the message
         "Convert message to dictionary format"
     
     def to_json(
             self
-        ) -> str:  # TODO: Add return description
+        ) -> str:  # JSON string representation of the message
         "Convert message to JSON string"
     
     def to_sse(
             self,
-            event_type: Optional[str] = 'message'  # TODO: Add description
-        ) -> str:  # TODO: Add return description
+            event_type: Optional[str] = 'message'  # SSE event type for the message
+        ) -> str:  # SSE formatted message string
         "Convert to SSE message format using FastHTML's sse_message"
 ```
 
 ``` python
 class BroadcastManager:
-    def __init__(self, 
-                 max_queue_size: int = 100,  # TODO: Add description
-                 history_limit: int = 50,  # TODO: Add description
-                 queue_timeout: float = 0.1,  # TODO: Add description
-                 debug: bool = False)
+    def __init__(self,
     "Manages SSE broadcast connections across multiple tabs/clients"
     
     def __init__(self,
-                     max_queue_size: int = 100,  # TODO: Add description
-                     history_limit: int = 50,  # TODO: Add description
-                     queue_timeout: float = 0.1,  # TODO: Add description
-                     debug: bool = False)
-        "Initialize the broadcast manager.
-
-Args:
-    max_queue_size: Maximum size for each connection's message queue
-    history_limit: Number of recent messages to keep in history
-    queue_timeout: Timeout for queue operations in seconds
-    debug: Enable debug logging"
+        "Initialize the broadcast manager."
     
     async def register(self, 
-                          connection_id: Optional[str] = None,  # TODO: Add description
-                          metadata: Optional[Dict[str, Any]] = None) -> tuple[str, asyncio.Queue]
-        "Register a new connection and return its queue.
-
-Args:
-    connection_id: Optional ID for the connection (auto-generated if not provided)
-    metadata: Optional metadata for the connection
-    
-Returns:
-    Tuple of (connection_id, queue)"
+                          connection_id: Optional[str] = None,  # Optional ID for the connection (auto-generated if not provided)
+                          metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
+                          ) -> tuple[str, asyncio.Queue]: # Tuple of (connection_id, queue)
+        "Register a new connection and return its queue."
     
     async def unregister(
             self,
-            connection_id: str  # TODO: Add description
+            connection_id: str  # ID of the connection to unregister
         )
         "Unregister a connection."
     
     async def broadcast(self, 
-                           message_type: str,  # TODO: Add description
-                           data: Dict[str, Any],
-                           metadata: Optional[Dict[str, Any]] = None,
-                           exclude: Optional[Set[str]] = None) -> int
-        "Broadcast a message to all connected clients.
-
-Args:
-    message_type: Type of the message
-    data: Message data
-    metadata: Optional metadata
-    exclude: Set of connection IDs to exclude from broadcast
-    
-Returns:
-    Number of successful broadcasts"
+                           message_type: str,  # Type of the message
+                           data: Dict[str, Any], # Message data
+                           metadata: Optional[Dict[str, Any]] = None, # Optional metadata
+                           exclude: Optional[Set[str]] = None # Set of connection IDs to exclude from broadcast
+                           ) -> int: # Number of successful broadcasts
+        "Broadcast a message to all connected clients."
     
     async def send_to(self,
-                         connection_id: str,  # TODO: Add description
-                         message_type: str,  # TODO: Add description
-                         data: Dict[str, Any],
-                         metadata: Optional[Dict[str, Any]] = None) -> bool
-        "Send a message to a specific connection.
-
-Args:
-    connection_id: Target connection ID
-    message_type: Type of the message
-    data: Message data
-    metadata: Optional metadata
-    
-Returns:
-    True if successful, False otherwise"
+                         connection_id: str,  # Target connection ID
+                         message_type: str,  # Type of the message
+                         data: Dict[str, Any], # Message data
+                         metadata: Optional[Dict[str, Any]] = None # Optional metadata
+                         ) -> bool: # True if successful, False otherwise
+        "Send a message to a specific connection."
     
     def get_connection_count(
             self
-        ) -> int:  # TODO: Add return description
+        ) -> int:  # Number of active connections
         "Get the number of active connections."
     
     def get_history(
             self,
-            limit: Optional[int] = None  # TODO: Add description
-        ) -> list[BroadcastMessage]:  # TODO: Add return description
+            limit: Optional[int] = None  # Maximum number of messages to return
+        ) -> list[BroadcastMessage]:  # List of broadcast messages from history
         "Get broadcast history."
 ```
 
@@ -216,8 +180,9 @@ from cjm_fasthtml_sse.core.connections import (
 def create_sse_element(endpoint: str,
                       element_id: Optional[str] = None,  # Optional element ID
                       swap_strategy: str = "message",  # HTMX swap strategy (message, innerHTML, outerHTML, etc.)
-                      hidden: bool = False,  # Whether to hide the element **attrs: Additional attributes for the element
-                      **attrs) -> Div
+                      hidden: bool = False,  # Whether to hide the element
+                      **attrs # Additional attributes for the element
+                      ) -> Div:  # SSE-enabled Div element configured for HTMX
     "Create an SSE-enabled HTML element."
 ```
 
@@ -230,13 +195,15 @@ def cleanup_sse_on_unload(
 ``` python
 def create_reconnection_script(check_interval: int = 5000,
                               max_retries: int = 5,  # Maximum number of reconnection attempts
-                              debug: bool = False) -> Script
+                              debug: bool = False  # Enable debug logging
+                              ) -> Script:  # Script element with reconnection logic
     "Create a script for automatic SSE reconnection."
 ```
 
 ``` python
 def create_connection_manager_script(registry_endpoint: str = "/sse/connections",
-                                    update_interval: int = 10000) -> Script
+                                    update_interval: int = 10000  # Interval for updating connection stats (in milliseconds)
+                                    ) -> Script:  # Script element with connection management logic
     "Create a script to manage and monitor connections."
 ```
 
@@ -263,21 +230,14 @@ class SSEConnection:
     
     async def send(
             self,
-            data: Any,  # TODO: Add description
-            timeout: float = 1.0  # TODO: Add description
-        ) -> bool:  # TODO: Add return description
-        "Send data through the connection queue.
-
-Args:
-    data: Data to send
-    timeout: Timeout for the send operation
-    
-Returns:
-    True if successful, False otherwise"
+            data: Any,  # Data to send
+            timeout: float = 1.0  # Timeout for the send operation
+        ) -> bool:  # True if successful, False otherwise
+        "Send data through the connection queue."
     
     async def heartbeat(
             self
-        ) -> str:  # TODO: Add return description
+        ) -> str:  # SSE formatted heartbeat message
         "Generate a heartbeat message."
     
     def close(self):
@@ -286,12 +246,12 @@ Returns:
         
         def is_active(
             self
-        ) -> bool:  # TODO: Add return description
+        ) -> bool:  # True if connection is active, False otherwise
         "Mark the connection as closed."
     
     def is_active(
             self
-        ) -> bool:  # TODO: Add return description
+        ) -> bool:  # True if connection is active, False otherwise
         "Check if connection is active."
 ```
 
@@ -299,87 +259,52 @@ Returns:
 class ConnectionRegistry:
     def __init__(
         self,
-        debug: bool = False  # TODO: Add description
+        debug: bool = False  # Enable debug logging
     )
     "Registry to track and manage SSE connections"
     
     def __init__(
             self,
-            debug: bool = False  # TODO: Add description
+            debug: bool = False  # Enable debug logging
         )
-        "Initialize the connection registry.
-
-Args:
-    debug: Enable debug logging"
+        "Initialize the connection registry."
     
     async def add_connection(self,
-                                conn_id: Optional[str] = None,  # TODO: Add description
-                                conn_type: str = "global",  # TODO: Add description
-                                queue_size: int = 100,  # TODO: Add description
-                                metadata: Optional[Dict[str, Any]] = None) -> SSEConnection
-        "Add a new connection to the registry.
-
-Args:
-    conn_id: Optional connection ID (auto-generated if not provided)
-    conn_type: Type of connection (e.g., 'global', 'job', 'user')
-    queue_size: Size of the message queue
-    metadata: Optional metadata for the connection
-    
-Returns:
-    The created SSEConnection"
+                                conn_id: Optional[str] = None,  # Optional connection ID (auto-generated if not provided)
+                                conn_type: str = "global",  # Type of connection (e.g., 'global', 'job', 'user')
+                                queue_size: int = 100,  # Size of the message queue
+                                metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
+                                ) -> SSEConnection: # The created SSEConnection
+        "Add a new connection to the registry."
     
     async def remove_connection(
             self,
-            conn_id: str  # TODO: Add description
+            conn_id: str  # Connection ID to remove
         )
-        "Remove a connection from the registry.
-
-Args:
-    conn_id: Connection ID to remove"
+        "Remove a connection from the registry."
     
     def get_connection(
             self,
-            conn_id: str  # TODO: Add description
-        ) -> Optional[SSEConnection]:  # TODO: Add return description
-        "Get a specific connection.
-
-Args:
-    conn_id: Connection ID
-    
-Returns:
-    The connection if found, None otherwise"
+            conn_id: str  # Connection ID
+        ) -> Optional[SSEConnection]:  # The connection if found, None otherwise
+        "Get a specific connection."
     
     def get_connections(
             self,
-            conn_type: Optional[str] = None  # TODO: Add description
-        ) -> list[SSEConnection]:  # TODO: Add return description
-        "Get connections, optionally filtered by type.
-
-Args:
-    conn_type: Optional connection type to filter by
-    
-Returns:
-    List of connections"
+            conn_type: Optional[str] = None  # Optional connection type to filter by
+        ) -> list[SSEConnection]:  # List of connections
+        "Get connections, optionally filtered by type."
     
     def get_active_connections(
             self,
-            conn_type: Optional[str] = None  # TODO: Add description
-        ) -> list[SSEConnection]:  # TODO: Add return description
-        "Get active connections.
-
-Args:
-    conn_type: Optional connection type to filter by
-    
-Returns:
-    List of active connections"
+            conn_type: Optional[str] = None  # Optional connection type to filter by
+        ) -> list[SSEConnection]:  # List of active connections
+        "Get active connections."
     
     def get_stats(
             self
-        ) -> Dict[str, Any]:  # TODO: Add return description
-        "Get registry statistics.
-
-Returns:
-    Dictionary with connection statistics"
+        ) -> Dict[str, Any]:  # Dictionary with connection statistics
+        "Get registry statistics."
 ```
 
 ### Streaming (`streaming.ipynb`)
@@ -406,7 +331,8 @@ from cjm_fasthtml_sse.core.streaming import (
 async def sse_generator(data_source: Union[AsyncGenerator, List, Callable],
                        interval: float = 0.5,  # Interval between items for list sources
                        heartbeat: float = 30.0,  # Heartbeat interval
-                       transform: Optional[Callable] = None) -> AsyncGenerator[str, None]
+                       transform: Optional[Callable] = None  # Optional function to transform data before sending
+                       ) -> AsyncGenerator[str, None]
     "Create an SSE generator from various data sources."
 ```
 
@@ -419,14 +345,16 @@ def create_sse_endpoint(stream_fn: Callable,
 ``` python
 async def stream_updates(source_queue: asyncio.Queue,
                         transform_fn: Optional[Callable] = None,  # Optional transformation function
-                        config: Optional[StreamConfig] = None) -> AsyncGenerator[str, None]
+                        config: Optional[StreamConfig] = None  # Stream configuration settings
+                        ) -> AsyncGenerator[str, None]
     "Stream updates from an async queue."
 ```
 
 ``` python
 def create_throttled_stream(source: AsyncGenerator,
                            min_interval: float = 0.1,  # Minimum interval between messages
-                           max_buffer: int = 10) -> AsyncGenerator
+                           max_buffer: int = 10  # Maximum number of messages to buffer
+                           ) -> AsyncGenerator:  # Throttled async generator
     "Create a throttled stream to prevent overwhelming clients."
 ```
 
@@ -450,30 +378,21 @@ class StreamConfig:
 class SSEStream:
     def __init__(
         self,
-        config: Optional[StreamConfig] = None  # TODO: Add description
+        config: Optional[StreamConfig] = None  # Stream configuration
     )
     "Generic SSE stream handler"
     
     def __init__(
             self,
-            config: Optional[StreamConfig] = None  # TODO: Add description
+            config: Optional[StreamConfig] = None  # Stream configuration
         )
-        "Initialize the SSE stream.
-
-Args:
-    config: Stream configuration"
+        "Initialize the SSE stream."
     
     async def stream(self,
-                        data_source: Union[AsyncGenerator, Callable],
-                        transform_fn: Optional[Callable] = None) -> AsyncGenerator[str, None]
-        "Stream data from a source through SSE.
-
-Args:
-    data_source: Async generator or callable that produces data
-    transform_fn: Optional function to transform data before sending
-    
-Yields:
-    SSE formatted strings"
+                        data_source: Union[AsyncGenerator, Callable], # Async generator or callable that produces data
+                        transform_fn: Optional[Callable] = None # Optional function to transform data before sending
+                        ) -> AsyncGenerator[str, None]: # SSE formatted strings
+        "Stream data from a source through SSE."
     
     def stop(self)
         "Stop the stream."
@@ -492,48 +411,26 @@ class OOBStreamBuilder:
         "Initialize the OOB stream builder."
     
     def add_element(self,
-                       element: Any,  # TODO: Add description
-                       target_id: Optional[str] = None,  # TODO: Add description
-                       swap_mode: str = "innerHTML",  # TODO: Add description
-                       wrap: bool = True) -> 'OOBStreamBuilder'
-        "Add an element with OOB swap configuration.
-
-Args:
-    element: The element to add
-    target_id: Target element ID for OOB swap
-    swap_mode: Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
-    wrap: If True and target_id is provided, wrap content in a Div with OOB attributes.
-          If False, add OOB attributes directly to the element.
-    
-Returns:
-    Self for chaining"
+                       element: Any,  # The element to add
+                       target_id: Optional[str] = None,  # Target element ID for OOB swap
+                       swap_mode: str = "innerHTML",  # Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
+                       wrap: bool = True  # If True and target_id is provided, wrap content in a Div with OOB attributes. If False, add OOB attributes directly to the element
+                       ) -> 'OOBStreamBuilder':  # Self for chaining
+        "Add an element with OOB swap configuration."
     
     def add_elements(
             self,
-            elements: List[tuple]  # TODO: Add description
-        ) -> 'OOBStreamBuilder':  # TODO: Add return description
-        "Add multiple elements with OOB configurations.
-
-Args:
-    elements: List of tuples: (element, target_id, swap_mode, wrap) or
-             (element, target_id, swap_mode) or (element, target_id) or (element,)
-    
-Returns:
-    Self for chaining"
+            elements: List[tuple]  # List of tuples: (element, target_id, swap_mode, wrap) or (element, target_id, swap_mode) or (element, target_id) or (element,)
+        ) -> 'OOBStreamBuilder':  # Self for chaining
+        "Add multiple elements with OOB configurations."
     
     def build(
             self
-        ) -> str:  # TODO: Add return description
-        "Build the SSE message with all elements.
-
-Returns:
-    SSE formatted message"
+        ) -> Div:  # Div with all elements
+        "Build the Div element with all elements."
     
     def clear(
             self
-        ) -> 'OOBStreamBuilder':  # TODO: Add return description
-        "Clear all elements.
-
-Returns:
-    Self for chaining"
+        ) -> 'OOBStreamBuilder':  # Self for chaining
+        "Clear all elements."
 ```

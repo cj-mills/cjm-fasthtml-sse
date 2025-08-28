@@ -26,20 +26,20 @@ class BroadcastMessage:
     
     def to_dict(
         self
-    ) -> Dict[str, Any]:  # TODO: Add return description
+    ) -> Dict[str, Any]:  # Dictionary representation of the message
         """Convert message to dictionary format"""
         return asdict(self)
     
     def to_json(
         self
-    ) -> str:  # TODO: Add return description
+    ) -> str:  # JSON string representation of the message
         """Convert message to JSON string"""
         return json.dumps(self.to_dict())
     
     def to_sse(
         self,
-        event_type: Optional[str] = 'message'  # TODO: Add description
-    ) -> str:  # TODO: Add return description
+        event_type: Optional[str] = 'message'  # SSE event type for the message
+    ) -> str:  # SSE formatted message string
         """Convert to SSE message format using FastHTML's sse_message"""
         if isinstance(self.data, FT):
             return sse_message(self.data, event=event_type)
@@ -51,18 +51,13 @@ class BroadcastManager:
     """Manages SSE broadcast connections across multiple tabs/clients"""
     
     def __init__(self, 
-                 max_queue_size: int = 100,  # TODO: Add description
-                 history_limit: int = 50,  # TODO: Add description
-                 queue_timeout: float = 0.1,  # TODO: Add description
-                 debug: bool = False):
+                 max_queue_size: int = 100,  # Maximum size for each connection's message queue
+                 history_limit: int = 50,  # Number of recent messages to keep in history
+                 queue_timeout: float = 0.1,  # Timeout for queue operations in seconds
+                 debug: bool = False # Enable debug logging
+                ):
         """
         Initialize the broadcast manager.
-        
-        Args:
-            max_queue_size: Maximum size for each connection's message queue
-            history_limit: Number of recent messages to keep in history
-            queue_timeout: Timeout for queue operations in seconds
-            debug: Enable debug logging
         """
         self.connections: Dict[str, asyncio.Queue] = {}
         self.connection_metadata: Dict[str, Dict[str, Any]] = {}
@@ -74,17 +69,11 @@ class BroadcastManager:
         self._connection_counter = 0
     
     async def register(self, 
-                      connection_id: Optional[str] = None,  # TODO: Add description
-                      metadata: Optional[Dict[str, Any]] = None) -> tuple[str, asyncio.Queue]:
+                      connection_id: Optional[str] = None,  # Optional ID for the connection (auto-generated if not provided)
+                      metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
+                      ) -> tuple[str, asyncio.Queue]: # Tuple of (connection_id, queue)
         """
         Register a new connection and return its queue.
-        
-        Args:
-            connection_id: Optional ID for the connection (auto-generated if not provided)
-            metadata: Optional metadata for the connection
-            
-        Returns:
-            Tuple of (connection_id, queue)
         """
         queue = asyncio.Queue(maxsize=self.max_queue_size)
         
@@ -104,7 +93,7 @@ class BroadcastManager:
     
     async def unregister(
         self,
-        connection_id: str  # TODO: Add description
+        connection_id: str  # ID of the connection to unregister
     ):
         """Unregister a connection."""
         async with self.lock:
@@ -116,21 +105,13 @@ class BroadcastManager:
                     print(f"[BroadcastManager] Unregistered connection: {connection_id}")
     
     async def broadcast(self, 
-                       message_type: str,  # TODO: Add description
-                       data: Dict[str, Any],
-                       metadata: Optional[Dict[str, Any]] = None,
-                       exclude: Optional[Set[str]] = None) -> int:
+                       message_type: str,  # Type of the message
+                       data: Dict[str, Any], # Message data
+                       metadata: Optional[Dict[str, Any]] = None, # Optional metadata
+                       exclude: Optional[Set[str]] = None # Set of connection IDs to exclude from broadcast
+                       ) -> int: # Number of successful broadcasts
         """
         Broadcast a message to all connected clients.
-        
-        Args:
-            message_type: Type of the message
-            data: Message data
-            metadata: Optional metadata
-            exclude: Set of connection IDs to exclude from broadcast
-            
-        Returns:
-            Number of successful broadcasts
         """
         message = BroadcastMessage(type=message_type, data=data, metadata=metadata)
         self.history.append(message)
@@ -167,21 +148,13 @@ class BroadcastManager:
         return successful
     
     async def send_to(self,
-                     connection_id: str,  # TODO: Add description
-                     message_type: str,  # TODO: Add description
-                     data: Dict[str, Any],
-                     metadata: Optional[Dict[str, Any]] = None) -> bool:
+                     connection_id: str,  # Target connection ID
+                     message_type: str,  # Type of the message
+                     data: Dict[str, Any], # Message data
+                     metadata: Optional[Dict[str, Any]] = None # Optional metadata
+                     ) -> bool: # True if successful, False otherwise
         """
         Send a message to a specific connection.
-        
-        Args:
-            connection_id: Target connection ID
-            message_type: Type of the message
-            data: Message data
-            metadata: Optional metadata
-            
-        Returns:
-            True if successful, False otherwise
         """
         if connection_id not in self.connections:
             return False
@@ -200,14 +173,14 @@ class BroadcastManager:
     
     def get_connection_count(
         self
-    ) -> int:  # TODO: Add return description
+    ) -> int:  # Number of active connections
         """Get the number of active connections."""
         return len(self.connections)
     
     def get_history(
         self,
-        limit: Optional[int] = None  # TODO: Add description
-    ) -> list[BroadcastMessage]:  # TODO: Add return description
+        limit: Optional[int] = None  # Maximum number of messages to return
+    ) -> list[BroadcastMessage]:  # List of broadcast messages from history
         """Get broadcast history."""
         if limit:
             return list(self.history)[-limit:]
@@ -219,9 +192,9 @@ async def create_broadcast_endpoint(manager: BroadcastManager,
                                    heartbeat_interval: float = 30.0,  # Interval for sending heartbeat messages
                                    send_history: bool = False,  # Whether to send recent history on connection
                                    history_limit: int = 10) -> EventStream:
-    "Create an SSE endpoint for broadcasting."
+    """Create an SSE endpoint for broadcasting."""
     async def stream():
-        "TODO: Add function description"
+        """Generate SSE stream events for the broadcast endpoint."""
         conn_id, queue = await manager.register(connection_id)
         
         try:
@@ -260,13 +233,13 @@ async def create_broadcast_endpoint(manager: BroadcastManager,
 # %% ../../nbs/core/broadcast.ipynb 9
 def create_broadcast_handler(manager: BroadcastManager,
                             element_builder: Optional[Callable] = None):
-    "Create a broadcast handler function that can be used with FastHTML routes."
+    """Create a broadcast handler function that can be used with FastHTML routes."""
     async def handler(
-        connection_id: Optional[str] = None  # TODO: Add description
+        connection_id: Optional[str] = None  # Optional connection ID
     ):
-        "TODO: Add function description"
+        """Handle SSE broadcast connection."""
         async def stream():
-            "TODO: Add function description"
+            """Generate SSE stream for the connection."""
             conn_id, queue = await manager.register(connection_id)
             
             try:
@@ -299,15 +272,15 @@ def setup_broadcast_routes(app,
                           manager: BroadcastManager,  # The broadcast manager instance
                           prefix: str = "/sse",  # URL prefix for SSE endpoints
                           element_builder: Optional[Callable] = None):
-    "Setup broadcast routes on a FastHTML app."
+    """Setup broadcast routes on a FastHTML app."""
     handler = create_broadcast_handler(manager, element_builder)
     
     # Register the route
     @app.route(f"{prefix}/broadcast")
     async def broadcast_endpoint(
-        connection_id: Optional[str] = None  # TODO: Add description
+        connection_id: Optional[str] = None  # Optional connection ID for the SSE connection
     ):
-        "TODO: Add function description"
+        """SSE broadcast endpoint for client connections."""
         return await handler(connection_id)
     
     # Add a status endpoint
