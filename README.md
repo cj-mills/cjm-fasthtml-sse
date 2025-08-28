@@ -36,8 +36,8 @@ graph LR
     core_multi_stream --> core_connections
     core_multi_stream --> core_streaming
     core_response --> core_streaming
-    core_routes --> core_streaming
     core_routes --> core_connections
+    core_routes --> core_streaming
 ```
 
 *5 cross-module dependencies detected*

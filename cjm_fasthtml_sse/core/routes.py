@@ -163,4 +163,74 @@ def create_conditional_sse_route(
             content = await inactive_content(**kwargs) if asyncio.iscoroutinefunction(inactive_content) else inactive_content(**kwargs)
             yield content
     
-    return create_sse_route(conditional_generator, transform_fn, config)
+    # If transform_fn expects kwargs, wrap it to capture them
+    if transform_fn:
+        def wrapped_transform_fn(**kwargs):
+            # Return a closure that has access to kwargs
+            def transform(data):
+                # Call the original transform with both data and kwargs
+                return transform_fn(data, **kwargs)
+            return transform
+        
+        # Create the route with wrapped transform
+        config = config or SSERouteConfig()
+        
+        async def route_handler(**kwargs):
+            """SSE route handler with kwargs-aware transform."""
+            
+            # Validation
+            if config.validate_fn:
+                validation_result = await config.validate_fn(**kwargs) if asyncio.iscoroutinefunction(config.validate_fn) else config.validate_fn(**kwargs)
+                if not validation_result:
+                    return EventStream(async_error_generator("Validation failed"))
+            
+            async def stream():
+                connection = None
+                
+                try:
+                    # Register connection if registry provided
+                    if config.registry:
+                        metadata = config.metadata_fn(**kwargs) if config.metadata_fn else kwargs
+                        connection = await config.registry.add_connection(
+                            conn_type=config.connection_type,
+                            metadata=metadata
+                        )
+                        if config.debug:
+                            print(f"[SSERoute] Connection registered: {connection.connection_id}")
+                    
+                    # Generate data
+                    data_source = conditional_generator(**kwargs)
+                    if callable(data_source) and not hasattr(data_source, '__anext__'):
+                        data_source = data_source()
+                    
+                    # Stream with SSEStream wrapper and kwargs-aware transform
+                    stream_config = config.stream_config or StreamConfig()
+                    sse_stream = SSEStream(stream_config)
+                    
+                    # Get the transform function with kwargs bound
+                    transform = wrapped_transform_fn(**kwargs)
+                    
+                    async for message in sse_stream.stream(data_source, transform):
+                        yield message
+                        
+                except Exception as e:
+                    if config.error_handler:
+                        error_msg = await config.error_handler(e, **kwargs) if asyncio.iscoroutinefunction(config.error_handler) else config.error_handler(e, **kwargs)
+                        yield sse_message(error_msg)
+                    elif config.debug:
+                        yield f": error {str(e)}\n\n"
+                    raise
+                    
+                finally:
+                    # Unregister connection
+                    if connection and config.registry:
+                        await config.registry.remove_connection(connection.connection_id)
+                        if config.debug:
+                            print(f"[SSERoute] Connection unregistered: {connection.connection_id}")
+            
+            return EventStream(stream())
+        
+        return route_handler
+    else:
+        # No transform function, use the standard route
+        return create_sse_route(conditional_generator, None, config)
