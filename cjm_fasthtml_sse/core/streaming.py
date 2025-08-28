@@ -141,9 +141,9 @@ class OOBStreamBuilder:
         self.elements: List[Any] = []
     
     def add_element(self,
-                   element: Any,
-                   target_id: Optional[str] = None,
-                   swap_mode: str = "innerHTML",
+                   element: Any,  # TODO: Add description
+                   target_id: Optional[str] = None,  # TODO: Add description
+                   swap_mode: str = "innerHTML",  # TODO: Add description
                    wrap: bool = True) -> 'OOBStreamBuilder':
         """Add an element with OOB swap configuration.
         
@@ -185,7 +185,10 @@ class OOBStreamBuilder:
         
         return self
     
-    def add_elements(self, elements: List[tuple]) -> 'OOBStreamBuilder':
+    def add_elements(
+        self,
+        elements: List[tuple]  # TODO: Add description
+    ) -> 'OOBStreamBuilder':  # TODO: Add return description
         """Add multiple elements with OOB configurations.
         
         Args:
@@ -215,7 +218,9 @@ class OOBStreamBuilder:
         
         return self
     
-    def build(self) -> str:
+    def build(
+        self
+    ) -> str:  # TODO: Add return description
         """Build the SSE message with all elements.
         
         Returns:
@@ -232,7 +237,9 @@ class OOBStreamBuilder:
         # return sse_message(container)
         return Div(*self.elements)
     
-    def clear(self) -> 'OOBStreamBuilder':
+    def clear(
+        self
+    ) -> 'OOBStreamBuilder':  # TODO: Add return description
         """Clear all elements.
         
         Returns:
