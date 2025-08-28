@@ -38,12 +38,13 @@ class BroadcastMessage:
     
     def to_sse(
         self,
-        event_type: Optional[str] = None  # TODO: Add description
+        event_type: Optional[str] = 'message'  # TODO: Add description
     ) -> str:  # TODO: Add return description
         """Convert to SSE message format using FastHTML's sse_message"""
-        # if event_type:
-        #     return f"event: {event_type}\ndata: {self.to_json()}\n\n"
-        return sse_message(self.data, event=event_type)
+        if isinstance(self.data, FT):
+            return sse_message(self.data, event=event_type)
+        else:
+            return f"event: {event_type}\ndata: {self.to_json()}\n\n"
 
 # %% ../../nbs/core/broadcast.ipynb 6
 class BroadcastManager:
