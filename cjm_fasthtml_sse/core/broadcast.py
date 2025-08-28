@@ -13,7 +13,7 @@ from collections import deque
 from datetime import datetime
 import json
 from dataclasses import dataclass, field, asdict
-from fasthtml.common import EventStream, sse_message
+from fasthtml.common import EventStream, sse_message, FT
 
 # %% ../../nbs/core/broadcast.ipynb 5
 @dataclass
@@ -41,9 +41,9 @@ class BroadcastMessage:
         event_type: Optional[str] = None  # TODO: Add description
     ) -> str:  # TODO: Add return description
         """Convert to SSE message format using FastHTML's sse_message"""
-        if event_type:
-            return f"event: {event_type}\ndata: {self.to_json()}\n\n"
-        return sse_message(self.to_dict())
+        # if event_type:
+        #     return f"event: {event_type}\ndata: {self.to_json()}\n\n"
+        return sse_message(self.data, event=event_type)
 
 # %% ../../nbs/core/broadcast.ipynb 6
 class BroadcastManager:
