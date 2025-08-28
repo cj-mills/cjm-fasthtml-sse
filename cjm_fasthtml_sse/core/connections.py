@@ -12,7 +12,7 @@ from typing import Dict, Optional, Any, Set, Callable
 from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
-from fasthtml.common import Div, Script
+from fasthtml.common import Div, Script, FT
 
 # %% ../../nbs/core/connections.ipynb 5
 class ConnectionState(Enum):
@@ -23,7 +23,7 @@ class ConnectionState(Enum):
     ERROR = "error"
     RECONNECTING = "reconnecting"
 
-# %% ../../nbs/core/connections.ipynb 6
+# %% ../../nbs/core/connections.ipynb 8
 @dataclass
 class SSEConnection:
     """Represents a single SSE connection"""
@@ -68,7 +68,7 @@ class SSEConnection:
         """Check if connection is active."""
         return self.state in [ConnectionState.CONNECTED, ConnectionState.CONNECTING]
 
-# %% ../../nbs/core/connections.ipynb 7
+# %% ../../nbs/core/connections.ipynb 13
 class ConnectionRegistry:
     """Registry to track and manage SSE connections"""
     
@@ -177,7 +177,7 @@ class ConnectionRegistry:
             "message_count": sum(c.message_count for c in self.connections.values())
         }
 
-# %% ../../nbs/core/connections.ipynb 9
+# %% ../../nbs/core/connections.ipynb 19
 def create_sse_element(endpoint: str,
                       element_id: Optional[str] = None,  # Optional element ID
                       swap_strategy: str = "message",  # HTMX swap strategy (message, innerHTML, outerHTML, etc.)
@@ -202,7 +202,7 @@ def create_sse_element(endpoint: str,
     
     return Div(**sse_attrs)
 
-# %% ../../nbs/core/connections.ipynb 10
+# %% ../../nbs/core/connections.ipynb 20
 def cleanup_sse_on_unload(
 ) -> Script:  # Script element for cleanup
     "Create a script to clean up SSE connections on page unload."
@@ -238,7 +238,7 @@ def cleanup_sse_on_unload(
     
     return Script(cleanup_code)
 
-# %% ../../nbs/core/connections.ipynb 11
+# %% ../../nbs/core/connections.ipynb 21
 def create_reconnection_script(check_interval: int = 5000,
                               max_retries: int = 5,  # Maximum number of reconnection attempts
                               debug: bool = False  # Enable debug logging
@@ -303,7 +303,7 @@ def create_reconnection_script(check_interval: int = 5000,
     
     return Script(reconnect_code)
 
-# %% ../../nbs/core/connections.ipynb 12
+# %% ../../nbs/core/connections.ipynb 22
 def create_connection_manager_script(registry_endpoint: str = "/sse/connections",
                                     update_interval: int = 10000  # Interval for updating connection stats (in milliseconds)
                                     ) -> Script:  # Script element with connection management logic

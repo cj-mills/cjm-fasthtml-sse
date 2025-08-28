@@ -48,22 +48,12 @@ Detailed documentation for each module in the project:
 from cjm_fasthtml_sse.core.broadcast import (
     BroadcastMessage,
     BroadcastManager,
-    create_broadcast_endpoint,
     create_broadcast_handler,
     setup_broadcast_routes
 )
 ```
 
 #### Functions
-
-``` python
-async def create_broadcast_endpoint(manager: BroadcastManager,
-                                   connection_id: Optional[str] = None,  # Optional connection ID
-                                   heartbeat_interval: float = 30.0,  # Interval for sending heartbeat messages
-                                   send_history: bool = False,  # Whether to send recent history on connection
-                                   history_limit: int = 10) -> EventStream
-    "Create an SSE endpoint for broadcasting."
-```
 
 ``` python
 def create_broadcast_handler(manager: BroadcastManager,
@@ -317,45 +307,8 @@ class ConnectionRegistry:
 from cjm_fasthtml_sse.core.streaming import (
     StreamConfig,
     SSEStream,
-    OOBStreamBuilder,
-    sse_generator,
-    create_sse_endpoint,
-    stream_updates,
-    create_throttled_stream
+    OOBStreamBuilder
 )
-```
-
-#### Functions
-
-``` python
-async def sse_generator(data_source: Union[AsyncGenerator, List, Callable],
-                       interval: float = 0.5,  # Interval between items for list sources
-                       heartbeat: float = 30.0,  # Heartbeat interval
-                       transform: Optional[Callable] = None  # Optional function to transform data before sending
-                       ) -> AsyncGenerator[str, None]
-    "Create an SSE generator from various data sources."
-```
-
-``` python
-def create_sse_endpoint(stream_fn: Callable,
-                       content_type: str = "text/event-stream") -> Callable
-    "Create an SSE endpoint from a streaming function."
-```
-
-``` python
-async def stream_updates(source_queue: asyncio.Queue,
-                        transform_fn: Optional[Callable] = None,  # Optional transformation function
-                        config: Optional[StreamConfig] = None  # Stream configuration settings
-                        ) -> AsyncGenerator[str, None]
-    "Stream updates from an async queue."
-```
-
-``` python
-def create_throttled_stream(source: AsyncGenerator,
-                           min_interval: float = 0.1,  # Minimum interval between messages
-                           max_buffer: int = 10  # Maximum number of messages to buffer
-                           ) -> AsyncGenerator:  # Throttled async generator
-    "Create a throttled stream to prevent overwhelming clients."
 ```
 
 #### Classes
@@ -426,7 +379,7 @@ class OOBStreamBuilder:
     
     def build(
             self
-        ) -> Div:  # Div with all elements
+        ) -> FT:  # Div with all elements
         "Build the Div element with all elements."
     
     def clear(
