@@ -12,12 +12,15 @@ pip install cjm_fasthtml_sse
 ## Project Structure
 
     nbs/
-    └── core/ (3)
-        ├── broadcast.ipynb    # Broadcasting infrastructure for SSE cross-tab synchronization
-        ├── connections.ipynb  # Connection management for SSE clients
-        └── streaming.ipynb    # SSE streaming utilities and helpers
+    └── core/ (6)
+        ├── broadcast.ipynb     # Broadcasting infrastructure for SSE cross-tab synchronization
+        ├── connections.ipynb   # Connection management for SSE clients
+        ├── multi_stream.ipynb  # Manage multiple related SSE streams for a single entity
+        ├── response.ipynb      # SSE response builders for complex UI updates
+        ├── routes.ipynb        # SSE route helpers and decorators for FastHTML
+        └── streaming.ipynb     # SSE streaming utilities and helpers
 
-Total: 3 notebooks across 4 directories
+Total: 6 notebooks across 4 directories
 
 ## Module Dependencies
 
@@ -25,10 +28,19 @@ Total: 3 notebooks across 4 directories
 graph LR
     core_broadcast[core.broadcast<br/>Broadcast]
     core_connections[core.connections<br/>Connections]
+    core_multi_stream[core.multi_stream<br/>Multi Stream]
+    core_response[core.response<br/>Response]
+    core_routes[core.routes<br/>Routes]
     core_streaming[core.streaming<br/>Streaming]
+
+    core_multi_stream --> core_connections
+    core_multi_stream --> core_streaming
+    core_response --> core_streaming
+    core_routes --> core_streaming
+    core_routes --> core_connections
 ```
 
-No cross-module dependencies detected.
+*5 cross-module dependencies detected*
 
 ## CLI Reference
 
@@ -295,6 +307,282 @@ class ConnectionRegistry:
             self
         ) -> Dict[str, Any]:  # Dictionary with connection statistics
         "Get registry statistics."
+```
+
+### Multi Stream (`multi_stream.ipynb`)
+
+> Manage multiple related SSE streams for a single entity
+
+#### Import
+
+``` python
+from cjm_fasthtml_sse.core.multi_stream import (
+    StreamEndpoint,
+    MultiStreamManager,
+    create_multi_stream_row
+)
+```
+
+#### Functions
+
+``` python
+def create_multi_stream_row(
+    manager: MultiStreamManager,  # Multi-stream manager
+    entity_id: str,  # Entity ID
+    streams: List[Dict[str, Any]],  # List of stream configurations
+    row_builder: Callable,  # Function to build the row
+    active: bool = True  # Whether streams should be active
+) -> FT:  # Table row or similar element
+    "Create a row element with multiple SSE streams."
+```
+
+#### Classes
+
+``` python
+@dataclass
+class StreamEndpoint:
+    "Configuration for a single SSE stream endpoint"
+    
+    name: str  # Stream name (e.g., 'progress', 'status')
+    path_suffix: str  # URL path suffix (e.g., '_progress', '_status')
+    data_source: Callable  # Async generator or callable that produces data
+    transform_fn: Optional[Callable]  # Optional transform function
+    config: Optional[StreamConfig]  # Stream configuration
+    metadata: Dict[str, Any] = field(...)  # Additional metadata
+```
+
+``` python
+class MultiStreamManager:
+    def __init__(
+        self,
+        base_path: str = "/stream",  # Base path for stream endpoints
+        connection_registry: Optional[ConnectionRegistry] = None,  # Optional shared registry
+        default_config: Optional[StreamConfig] = None,  # Default config for all streams
+        debug: bool = False  # Enable debug logging
+    )
+    "Manages multiple related SSE streams for entities"
+    
+    def __init__(
+            self,
+            base_path: str = "/stream",  # Base path for stream endpoints
+            connection_registry: Optional[ConnectionRegistry] = None,  # Optional shared registry
+            default_config: Optional[StreamConfig] = None,  # Default config for all streams
+            debug: bool = False  # Enable debug logging
+        )
+        "Initialize the multi-stream manager."
+    
+    def register_endpoint(
+            self,
+            endpoint: StreamEndpoint  # Stream endpoint configuration
+        ) -> 'MultiStreamManager':  # Self for chaining
+        "Register a stream endpoint."
+    
+    def create_element(
+            self,
+            entity_id: str,  # Entity ID (e.g., job_id, user_id)
+            stream_name: str,  # Stream name to connect to
+            element_id: Optional[str] = None,  # Optional element ID
+            wrapper: Optional[Callable] = None,  # Optional wrapper function for the element
+            **attrs  # Additional attributes
+        ) -> FT:  # HTMX-enabled SSE element
+        "Create an SSE-enabled element for a specific stream."
+    
+    def create_handler(
+            self,
+            stream_name: str,  # Stream name
+            get_entity_fn: Callable,  # Function to get entity state
+            is_active_fn: Callable  # Function to check if entity is active
+        ) -> Callable:  # Route handler function
+        "Create a route handler for a specific stream."
+    
+    def setup_routes(
+            self,
+            app,  # FastHTML app
+            get_entity_fn: Callable,  # Function to get entity state
+            is_active_fn: Callable  # Function to check if entity is active
+        )
+        "Setup all stream routes on the app."
+```
+
+### Response (`response.ipynb`)
+
+> SSE response builders for complex UI updates
+
+#### Import
+
+``` python
+from cjm_fasthtml_sse.core.response import (
+    UpdateRule,
+    SSEResponseBuilder,
+    create_conditional_response,
+    create_state_response_builder
+)
+```
+
+#### Functions
+
+``` python
+def create_conditional_response(
+    conditions: List[Tuple[Callable, Callable]],  # List of (condition, builder) tuples
+    always_include: Optional[List[Callable]] = None,  # Builders that always run
+    context: Optional[Dict[str, Any]] = None  # Initial context
+) -> SSEResponseBuilder:  # Configured response builder
+    "Create a response builder with predefined conditions."
+```
+
+``` python
+def create_state_response_builder(
+    state_builders: Dict[str, Callable],  # Mapping of state names to builders
+    get_state_fn: Callable,  # Function to determine current state
+    default_builder: Optional[Callable] = None  # Default builder if no state matches
+) -> SSEResponseBuilder:  # Configured response builder
+    "Create a response builder for state-based updates."
+```
+
+#### Classes
+
+``` python
+@dataclass
+class UpdateRule:
+    "Rule for conditional element updates"
+    
+    condition: Callable  # Function that returns True if rule should apply
+    builder: Callable  # Function that builds the element(s)
+    target_id: Optional[str]  # Target element ID for OOB swap
+    swap_mode: str = 'innerHTML'  # Swap mode
+    priority: int = 0  # Higher priority rules are evaluated first
+```
+
+``` python
+class SSEResponseBuilder:
+    def __init__(
+        self,
+        debug: bool = False  # Enable debug logging
+    )
+    "Builder for complex SSE responses with conditional updates"
+    
+    def __init__(
+            self,
+            debug: bool = False  # Enable debug logging
+        )
+        "Initialize the response builder."
+    
+    def add_rule(
+            self,
+            condition: Callable,  # Condition function
+            builder: Callable,  # Element builder function
+            target_id: Optional[str] = None,  # Target ID for OOB
+            swap_mode: str = "innerHTML",  # Swap mode
+            priority: int = 0  # Rule priority
+        ) -> 'SSEResponseBuilder':  # Self for chaining
+        "Add a conditional update rule."
+    
+    def add_always(
+            self,
+            builder: Callable  # Element builder that always runs
+        ) -> 'SSEResponseBuilder':  # Self for chaining
+        "Add a builder that always runs."
+    
+    def set_context(
+            self,
+            **kwargs  # Context variables
+        ) -> 'SSEResponseBuilder':  # Self for chaining
+        "Set context variables for builders."
+    
+    def build(
+            self,
+            **kwargs  # Additional context for this build
+        ) -> FT:  # Built response
+        "Build the response based on rules and context."
+    
+    def clear_rules(
+            self
+        ) -> 'SSEResponseBuilder':  # Self for chaining
+        "Clear all rules."
+    
+    def clear_always(
+            self
+        ) -> 'SSEResponseBuilder':  # Self for chaining
+        "Clear always-include builders."
+```
+
+### Routes (`routes.ipynb`)
+
+> SSE route helpers and decorators for FastHTML
+
+#### Import
+
+``` python
+from cjm_fasthtml_sse.core.routes import (
+    SSERouteConfig,
+    create_sse_route,
+    async_error_generator,
+    sse_route,
+    setup_sse_routes,
+    create_conditional_sse_route
+)
+```
+
+#### Functions
+
+``` python
+def create_sse_route(
+    data_generator: Callable,  # Async generator function
+    transform_fn: Optional[Callable] = None,  # Optional transform function
+    config: Optional[SSERouteConfig] = None  # Route configuration
+) -> Callable:  # Route handler
+    "Create an SSE route handler with automatic connection management."
+```
+
+``` python
+async def async_error_generator(message: str)
+    "Generate an error message for SSE."
+```
+
+``` python
+def sse_route(
+    path: Optional[str] = None,  # Route path
+    transform_fn: Optional[Callable] = None,  # Transform function
+    config: Optional[SSERouteConfig] = None  # Route configuration
+) -> Callable:  # Decorator
+    "Decorator to create SSE routes."
+```
+
+``` python
+def setup_sse_routes(
+    app,  # FastHTML app
+    *handlers,  # SSE route handlers created with @sse_route
+    prefix: str = "",  # URL prefix
+    registry: Optional[ConnectionRegistry] = None  # Shared registry
+)
+    "Setup multiple SSE routes on an app."
+```
+
+``` python
+def create_conditional_sse_route(
+    active_generator: Callable,  # Generator for active entities
+    inactive_content: Callable,  # Function to generate content for inactive entities
+    is_active_fn: Callable,  # Function to check if entity is active
+    transform_fn: Optional[Callable] = None,  # Transform function
+    config: Optional[SSERouteConfig] = None  # Route configuration
+) -> Callable:  # Route handler
+    "Create an SSE route that handles both active and inactive states."
+```
+
+#### Classes
+
+``` python
+@dataclass
+class SSERouteConfig:
+    "Configuration for SSE route"
+    
+    connection_type: str = 'sse'  # Connection type for registry
+    stream_config: Optional[StreamConfig]  # Stream configuration
+    registry: Optional[ConnectionRegistry]  # Connection registry
+    validate_fn: Optional[Callable]  # Validation function
+    metadata_fn: Optional[Callable]  # Function to generate metadata
+    error_handler: Optional[Callable]  # Error handler function
+    debug: bool = False  # Enable debug logging
 ```
 
 ### Streaming (`streaming.ipynb`)
