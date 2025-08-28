@@ -141,61 +141,81 @@ class OOBStreamBuilder:
         self.elements: List[Any] = []
     
     def add_element(self,
-                   element: Any,  # TODO: Add description
-                   target_id: Optional[str] = None,  # TODO: Add description
-                   swap_mode: str = "innerHTML") -> 'OOBStreamBuilder':
+                   element: Any,
+                   target_id: Optional[str] = None,
+                   swap_mode: str = "innerHTML",
+                   wrap: bool = True) -> 'OOBStreamBuilder':
         """Add an element with OOB swap configuration.
         
         Args:
             element: The element to add
             target_id: Target element ID for OOB swap
-            swap_mode: Swap mode (innerHTML, outerHTML, beforeend, etc.)
+            swap_mode: Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
+            wrap: If True and target_id is provided, wrap content in a Div with OOB attributes.
+                  If False, add OOB attributes directly to the element.
             
         Returns:
             Self for chaining
         """
         if target_id:
-            # Add OOB attributes
-            if hasattr(element, 'attrs'):
-                element.attrs['id'] = target_id
-                element.attrs['hx_swap_oob'] = swap_mode if swap_mode != "innerHTML" else "true"
-            elif isinstance(element, dict):
-                element['id'] = target_id
-                element['hx_swap_oob'] = swap_mode if swap_mode != "innerHTML" else "true"
+            if wrap and swap_mode == "innerHTML":
+                # For innerHTML swaps, wrap the content in a container with the target ID
+                # This is the most common case for replacing content
+                wrapper = Div(element, id=target_id, hx_swap_oob="innerHTML")
+                self.elements.append(wrapper)
+            elif wrap and swap_mode != "outerHTML":
+                # For other swap modes (beforeend, afterbegin, etc.), also wrap
+                wrapper = Div(element, id=target_id, hx_swap_oob=swap_mode)
+                self.elements.append(wrapper)
+            else:
+                # For outerHTML swaps or when wrap=False, add attributes directly to element
+                if hasattr(element, 'attrs'):
+                    # Only set ID if element doesn't already have one or if it matches target_id
+                    if not element.attrs.get('id') or element.attrs.get('id') == target_id:
+                        element.attrs['id'] = target_id
+                    element.attrs['hx_swap_oob'] = swap_mode if swap_mode != "innerHTML" else "true"
+                elif isinstance(element, dict):
+                    if not element.get('id') or element.get('id') == target_id:
+                        element['id'] = target_id
+                    element['hx_swap_oob'] = swap_mode if swap_mode != "innerHTML" else "true"
+                self.elements.append(element)
+        else:
+            # No target_id, just add the element as-is
+            self.elements.append(element)
         
-        self.elements.append(element)
         return self
     
-    def add_elements(
-        self,
-        elements: List[tuple]  # TODO: Add description
-    ) -> 'OOBStreamBuilder':  # TODO: Add return description
+    def add_elements(self, elements: List[tuple]) -> 'OOBStreamBuilder':
         """Add multiple elements with OOB configurations.
         
         Args:
-            elements: List of (element, target_id, swap_mode) tuples
+            elements: List of tuples: (element, target_id, swap_mode, wrap) or
+                     (element, target_id, swap_mode) or (element, target_id) or (element,)
             
         Returns:
             Self for chaining
         """
         for item in elements:
-            if len(item) == 3:
+            if len(item) == 4:
+                element, target_id, swap_mode, wrap = item
+            elif len(item) == 3:
                 element, target_id, swap_mode = item
+                wrap = True  # Default to wrapping
             elif len(item) == 2:
                 element, target_id = item
                 swap_mode = "innerHTML"
+                wrap = True
             else:
-                element = item[0]
+                element = item[0] if isinstance(item, tuple) else item
                 target_id = None
                 swap_mode = "innerHTML"
+                wrap = True
             
-            self.add_element(element, target_id, swap_mode)
+            self.add_element(element, target_id, swap_mode, wrap)
         
         return self
     
-    def build(
-        self
-    ) -> str:  # TODO: Add return description
+    def build(self) -> str:
         """Build the SSE message with all elements.
         
         Returns:
@@ -211,9 +231,7 @@ class OOBStreamBuilder:
         container = Div(*self.elements)
         return sse_message(container)
     
-    def clear(
-        self
-    ) -> 'OOBStreamBuilder':  # TODO: Add return description
+    def clear(self) -> 'OOBStreamBuilder':
         """Clear all elements.
         
         Returns:

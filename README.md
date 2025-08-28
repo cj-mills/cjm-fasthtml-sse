@@ -500,42 +500,55 @@ class OOBStreamBuilder:
         "Initialize the OOB stream builder."
     
     def add_element(self,
-                       element: Any,  # TODO: Add description
-                       target_id: Optional[str] = None,  # TODO: Add description
-                       swap_mode: str = "innerHTML") -> 'OOBStreamBuilder'
+                       element: Any,
+                       target_id: Optional[str] = None,
+                       swap_mode: str = "innerHTML",
+                       wrap: bool = True) -> 'OOBStreamBuilder'
         "Add an element with OOB swap configuration.
 
 Args:
     element: The element to add
     target_id: Target element ID for OOB swap
-    swap_mode: Swap mode (innerHTML, outerHTML, beforeend, etc.)
+    swap_mode: Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
+    wrap: If True and target_id is provided, wrap content in a Div with OOB attributes.
+          If False, add OOB attributes directly to the element.
     
 Returns:
     Self for chaining"
     
-    def add_elements(
-            self,
-            elements: List[tuple]  # TODO: Add description
-        ) -> 'OOBStreamBuilder':  # TODO: Add return description
+    def add_elements(self, elements: List[tuple]) -> 'OOBStreamBuilder':
+            """Add multiple elements with OOB configurations.
+            
+            Args:
+                elements: List of tuples: (element, target_id, swap_mode, wrap) or
+                         (element, target_id, swap_mode) or (element, target_id) or (element,)
+                
+            Returns:
+                Self for chaining
+            """
+            for item in elements
         "Add multiple elements with OOB configurations.
 
 Args:
-    elements: List of (element, target_id, swap_mode) tuples
+    elements: List of tuples: (element, target_id, swap_mode, wrap) or
+             (element, target_id, swap_mode) or (element, target_id) or (element,)
     
 Returns:
     Self for chaining"
     
-    def build(
-            self
-        ) -> str:  # TODO: Add return description
+    def build(self) -> str:
+            """Build the SSE message with all elements.
+            
+            Returns:
+                SSE formatted message
+            """
+            if not self.elements
         "Build the SSE message with all elements.
 
 Returns:
     SSE formatted message"
     
-    def clear(
-            self
-        ) -> 'OOBStreamBuilder':  # TODO: Add return description
+    def clear(self) -> 'OOBStreamBuilder'
         "Clear all elements.
 
 Returns:
