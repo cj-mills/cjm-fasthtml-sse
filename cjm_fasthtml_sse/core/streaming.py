@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['StreamConfig', 'SSEStream', 'OOBStreamBuilder', 'sse_generator', 'create_sse_endpoint', 'stream_updates',
-           'create_progress_stream', 'create_throttled_stream']
+           'create_throttled_stream']
 
 # %% ../../nbs/core/streaming.ipynb 3
 import asyncio
@@ -228,8 +228,9 @@ class OOBStreamBuilder:
             return sse_message(self.elements[0])
         
         # Wrap multiple elements in a container
-        container = Div(*self.elements)
-        return sse_message(container)
+        # container = Div(*self.elements)
+        # return sse_message(container)
+        return Div(*self.elements)
     
     def clear(self) -> 'OOBStreamBuilder':
         """Clear all elements.
@@ -292,39 +293,6 @@ async def stream_updates(source_queue: asyncio.Queue,
         yield message
 
 # %% ../../nbs/core/streaming.ipynb 12
-def create_progress_stream(job_id: str,
-                          progress_source: Callable,  # Callable that returns progress data
-                          interval: float = 0.5) -> Callable:
-    "Create a progress streaming endpoint."
-    async def progress_stream():
-        "TODO: Add function description"
-        last_progress = -1
-        
-        while True:
-            # Get current progress
-            progress_data = await progress_source(job_id) if asyncio.iscoroutinefunction(progress_source) else progress_source(job_id)
-            
-            if progress_data is None:
-                # Job not found or completed
-                yield sse_message({"status": "completed", "progress": 100})
-                break
-            
-            current_progress = progress_data.get('progress', 0)
-            
-            # Only send update if progress changed
-            if current_progress != last_progress:
-                yield sse_message(progress_data)
-                last_progress = current_progress
-            
-            # Check if completed
-            if progress_data.get('completed', False) or current_progress >= 100:
-                break
-            
-            await asyncio.sleep(interval)
-    
-    return progress_stream
-
-# %% ../../nbs/core/streaming.ipynb 13
 def create_throttled_stream(source: AsyncGenerator,
                            min_interval: float = 0.1,  # Minimum interval between messages
                            max_buffer: int = 10) -> AsyncGenerator:

@@ -103,7 +103,7 @@ class BroadcastMessage:
     
     def to_sse(
             self,
-            event_type: Optional[str] = None  # TODO: Add description
+            event_type: Optional[str] = 'message'  # TODO: Add description
         ) -> str:  # TODO: Add return description
         "Convert to SSE message format using FastHTML's sse_message"
 ```
@@ -396,7 +396,6 @@ from cjm_fasthtml_sse.core.streaming import (
     sse_generator,
     create_sse_endpoint,
     stream_updates,
-    create_progress_stream,
     create_throttled_stream
 )
 ```
@@ -422,13 +421,6 @@ async def stream_updates(source_queue: asyncio.Queue,
                         transform_fn: Optional[Callable] = None,  # Optional transformation function
                         config: Optional[StreamConfig] = None) -> AsyncGenerator[str, None]
     "Stream updates from an async queue."
-```
-
-``` python
-def create_progress_stream(job_id: str,
-                          progress_source: Callable,  # Callable that returns progress data
-                          interval: float = 0.5) -> Callable
-    "Create a progress streaming endpoint."
 ```
 
 ``` python
