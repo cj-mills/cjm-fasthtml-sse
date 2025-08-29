@@ -6,6 +6,7 @@
 __all__ = ['SSEEvent', 'SSEEventDispatcher']
 
 # %% ../nbs/dispatcher.ipynb 3
+import asyncio
 from typing import Callable, Dict, Any, List, Optional, Set, Union
 from dataclasses import dataclass
 import re
@@ -44,7 +45,7 @@ class SSEEventDispatcher:
         
     def register_namespace(
         self,
-        namespace: str  # TODO: Add description
+        namespace: str  # Namespace name to register for event organization
     ):
         """Register a namespace for event organization."""
         self._namespaces.add(namespace)
@@ -58,9 +59,9 @@ class SSEEventDispatcher:
         Decorator to register an event handler with pattern matching.
         """
         def decorator(
-            handler: Callable  # TODO: Add description
+            handler: Callable  # Event handler function to register
         ):
-            "TODO: Add function description"
+            """Register the handler and return it unchanged."""
             self.add_handler(event_pattern, handler, priority)
             return handler
         return decorator
@@ -109,9 +110,9 @@ class SSEEventDispatcher:
     
     def _match_pattern(
         self,
-        pattern: str,  # TODO: Add description
-        event_type: str  # TODO: Add description
-    ) -> bool:  # TODO: Add return description
+        pattern: str,  # Pattern to match against (supports wildcards)
+        event_type: str  # Event type string to test
+    ) -> bool:  # True if pattern matches event type
         """
         Check if an event type matches a pattern.
         
@@ -158,9 +159,9 @@ class SSEEventDispatcher:
         
         # Process through middleware chain
         async def process_event(
-            evt  # TODO: Add type hint and description
+            evt: SSEEvent  # Event to process through handlers
         ):
-            """TODO: Add function description"""
+            """Process event through all matching handlers."""
             results = []
             
             # Find matching handlers
@@ -181,10 +182,10 @@ class SSEEventDispatcher:
         for middleware in reversed(self._middleware):
             next_processor = current_processor
             async def wrapped_processor(
-                evt,  # TODO: Add type hint and description
-                next_proc=next_processor  # TODO: Add type hint and description
+                evt: SSEEvent,  # Event to process
+                next_proc: Callable = next_processor  # Next processor in chain
             ):
-                """TODO: Add function description"""
+                """Apply middleware and call next processor."""
                 if asyncio.iscoroutinefunction(middleware):
                     return await middleware(evt, next_proc)
                 else:
@@ -195,7 +196,7 @@ class SSEEventDispatcher:
     
     def clear_handlers(
         self,
-        pattern: Optional[str] = None  # TODO: Add description
+        pattern: Optional[str] = None  # Specific pattern to clear, or None for all
     ):
         """Clear handlers for a specific pattern or all handlers."""
         if pattern:

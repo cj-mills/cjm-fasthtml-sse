@@ -22,9 +22,9 @@ class SSEBroadcastManager:
     """
     
     def __init__(self, 
-                 max_queue_size: int = 100,    # TODO: Add description
-                 history_size: int = 50,    # TODO: Add description
-                 default_timeout: float = 0.1   # TODO: Add description
+                 max_queue_size: int = 100,    # Maximum number of messages per connection queue
+                 history_size: int = 50,    # Number of broadcast messages to keep in history
+                 default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                 ):
         """
         Initialize the SSE Broadcast Manager.
@@ -131,7 +131,7 @@ class SSEBroadcastManager:
     
     def on_connect(
         self,
-        callback: Callable  # TODO: Add description
+        callback: Callable  # Function to call when a new connection is registered
     ):
         """Register a callback for new connections."""
         self._on_connect_hooks.append(callback)
@@ -139,7 +139,7 @@ class SSEBroadcastManager:
     
     def on_disconnect(
         self,
-        callback: Callable  # TODO: Add description
+        callback: Callable  # Function to call when a connection is unregistered
     ):
         """Register a callback for disconnections."""
         self._on_disconnect_hooks.append(callback)
@@ -147,7 +147,7 @@ class SSEBroadcastManager:
     
     def on_broadcast(
         self,
-        callback: Callable  # TODO: Add description
+        callback: Callable  # Function to call before broadcasting (can modify messages)
     ):
         """Register a callback for broadcasts (can modify messages)."""
         self._on_broadcast_hooks.append(callback)
@@ -156,7 +156,7 @@ class SSEBroadcastManager:
     @property
     def connection_count(
         self
-    ) -> int:  # TODO: Add return description
+    ) -> int:  # Number of active connections
         """Get the current number of active connections."""
         return len(self.connections)
     

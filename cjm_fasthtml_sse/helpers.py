@@ -13,7 +13,7 @@ from fasthtml.common import FT, Script
 # %% ../nbs/helpers.ipynb 4
 # Helper function for creating OOB swap elements
 def oob_swap(
-    element,    # The element to add OOB swap to - TODO: Add type hint
+    element: Any,    # The element to add OOB swap to
     swap_type: str = "outerHTML",  # Type of swap (innerHTML, outerHTML, beforebegin, afterend, etc.)
     target_id: Optional[str] = None  # Optional target ID (uses element's ID if not specified)
 ):
@@ -27,7 +27,7 @@ def oob_swap(
 # %% ../nbs/helpers.ipynb 5
 def oob_element(
     element_id: str,  # ID of the target element
-    content,    # Content to swap - TODO: Add type hint
+    content: Any,    # Content to swap
     swap_type: str = "innerHTML"  # Type of swap
 ):
     """Create a wrapper element for OOB swap."""
@@ -39,17 +39,17 @@ def oob_element(
 
 # %% ../nbs/helpers.ipynb 6
 def sse_element(endpoint: str, 
-                events: Optional[Union[str, List[str]]] = None, # TODO: Add description
+                events: Optional[Union[str, List[str]]] = None, # Event name(s) to listen for from SSE stream
                 auto_close: bool = True,  # Whether to auto-close on completion
                 swap_type: str = "message" # How to swap content
                ):
     """Decorator to add SSE capabilities to any element."""
     def decorator(
-        element_func: Callable  # TODO: Add description
+        element_func: Callable  # Function that creates an element
     ):
-        "TODO: Add function description"
+        """Inner decorator function."""
         def wrapper(*args, **kwargs):
-            "TODO: Add function description"
+            """Wrap element creation with SSE attributes."""
             # Create the base element
             element = element_func(*args, **kwargs)
             
@@ -76,21 +76,21 @@ def oob_update(
 
 # %% ../nbs/helpers.ipynb 8
 def cleanup_sse_on_unload(
-) -> FT:  # TODO: Add return description
-    """TODO: Add function description"""
+) -> FT:  # FastHTML element (Script) for cleanup
+    """Add script to cleanup SSE connections on page unload."""
     return Script("""window.addEventListener('beforeunload',()=>{document.querySelectorAll('[sse-connect]').forEach(e=>{e['htmx-internal-data']?.sseEventSource?.close()});htmx?.findAll('[sse-connect]').forEach(e=>htmx.trigger(e,'htmx:sseClose'))});""")
 
 # %% ../nbs/helpers.ipynb 9
 # 
 def get_htmx_idx(
-    hdrs  # TODO: Add type hint and description
-): # TODO: Add type hint
-    """TODO: Add function description"""
+    hdrs: List  # List of header elements to search
+) -> int:  # Index of HTMX script or -1 if not found
+    """Find the index of HTMX script in headers list."""
     return next((i for i, hdr in enumerate(hdrs) if (hdr.attrs.get('src') or '').endswith('htmx.min.js')), -1)
 
 # %% ../nbs/helpers.ipynb 10
 def insert_htmx_sse_ext(
-    hdrs:List  # TODO: Add type hint and description
+    hdrs: List  # List of header elements to modify
 ):
     """Add HTMX SSE extension after HTMX script"""
     htmx_idx = get_htmx_idx(hdrs)

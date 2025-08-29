@@ -18,9 +18,9 @@ class HTMXSSEConnector:
     
     @staticmethod
     def add_sse_attrs(element, 
-                      endpoint: str,  # TODO: Add description
+                      endpoint: str,  # SSE endpoint URL to connect to
                       events: Optional[Union[str, List[str]]] = None,
-                      swap_type: str = "message",  # TODO: Add description
+                      swap_type: str = "message",  # How to swap content (message, innerHTML, outerHTML, etc.)
                       auto_reconnect: bool = True):
         """
         Add SSE connection attributes to an element.
@@ -55,11 +55,11 @@ class HTMXSSEConnector:
     
     @staticmethod
     def create_sse_element(element_type=Div,
-                          endpoint: str = None,  # TODO: Add description
-                          element_id: str = None,  # TODO: Add description
+                          endpoint: str = None,  # SSE endpoint URL to connect to
+                          element_id: str = None,  # Optional ID for the element
                           events: Optional[Union[str, List[str]]] = None,
-                          swap_type: str = "message",  # TODO: Add description
-                          hidden: bool = False,  # TODO: Add description
+                          swap_type: str = "message",  # How to swap content when messages are received
+                          hidden: bool = False,  # Whether to hide the element initially
                           **kwargs):
         """
         Create an element with SSE connection configured.
@@ -101,8 +101,8 @@ class HTMXSSEConnector:
     
     @staticmethod
     def sse_progress_element(job_id: str, 
-                            endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # TODO: Add description
-                            element_id_template: str = "progress-span-{job_id}",  # TODO: Add description
+                            endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # URL template for the SSE endpoint
+                            element_id_template: str = "progress-span-{job_id}",  # Template for generating element ID
                             initial_content=None):
         """
         Create an SSE-enabled progress element.
@@ -126,8 +126,8 @@ class HTMXSSEConnector:
     
     @staticmethod
     def sse_status_element(job_id: str,
-                          endpoint_template: str = "/stream_job_status?job_id={job_id}",  # TODO: Add description
-                          element_id_template: str = "status-span-{job_id}",  # TODO: Add description
+                          endpoint_template: str = "/stream_job_status?job_id={job_id}",  # URL template for the SSE endpoint
+                          element_id_template: str = "status-span-{job_id}",  # Template for generating element ID
                           initial_content=None):
         """
         Create an SSE-enabled status element.
@@ -151,7 +151,7 @@ class HTMXSSEConnector:
     
     @staticmethod
     def create_sse_monitor_script(
-        config: Dict[str, Any]  # TODO: Add description
+        config: Dict[str, Any]  # Configuration dictionary for monitoring setup
     ):
         """
         Create a monitoring script for SSE connections.

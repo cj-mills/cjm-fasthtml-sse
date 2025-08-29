@@ -62,9 +62,9 @@ from cjm_fasthtml_sse.core import (
 ``` python
 class SSEBroadcastManager:
     def __init__(self, 
-                 max_queue_size: int = 100,    # TODO: Add description
-                 history_size: int = 50,    # TODO: Add description
-                 default_timeout: float = 0.1   # TODO: Add description
+                 max_queue_size: int = 100,    # Maximum number of messages per connection queue
+                 history_size: int = 50,    # Number of broadcast messages to keep in history
+                 default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                 )
     """
     Manages SSE connections and broadcasting without UI dependencies.
@@ -74,9 +74,9 @@ class SSEBroadcastManager:
     """
     
     def __init__(self,
-                     max_queue_size: int = 100,    # TODO: Add description
-                     history_size: int = 50,    # TODO: Add description
-                     default_timeout: float = 0.1   # TODO: Add description
+                     max_queue_size: int = 100,    # Maximum number of messages per connection queue
+                     history_size: int = 50,    # Number of broadcast messages to keep in history
+                     default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                     )
         "Initialize the SSE Broadcast Manager."
     
@@ -101,25 +101,25 @@ class SSEBroadcastManager:
     
     def on_connect(
             self,
-            callback: Callable  # TODO: Add description
+            callback: Callable  # Function to call when a new connection is registered
         )
         "Register a callback for new connections."
     
     def on_disconnect(
             self,
-            callback: Callable  # TODO: Add description
+            callback: Callable  # Function to call when a connection is unregistered
         )
         "Register a callback for disconnections."
     
     def on_broadcast(
             self,
-            callback: Callable  # TODO: Add description
+            callback: Callable  # Function to call before broadcasting (can modify messages)
         )
         "Register a callback for broadcasts (can modify messages)."
     
     def connection_count(
             self
-        ) -> int:  # TODO: Add return description
+        ) -> int:  # Number of active connections
         "Get the current number of active connections."
     
     def get_history(
@@ -180,7 +180,7 @@ class SSEEventDispatcher:
     
     def register_namespace(
             self,
-            namespace: str  # TODO: Add description
+            namespace: str  # Namespace name to register for event organization
         )
         "Register a namespace for event organization."
     
@@ -225,7 +225,7 @@ class SSEEventDispatcher:
     
     def clear_handlers(
             self,
-            pattern: Optional[str] = None  # TODO: Add description
+            pattern: Optional[str] = None  # Specific pattern to clear, or None for all
         )
         "Clear handlers for a specific pattern or all handlers."
 ```
@@ -259,7 +259,7 @@ def oob_swap(
 ``` python
 def oob_element(
     element_id: str,  # ID of the target element
-    content,    # Content to swap - TODO: Add type hint
+    content: Any,    # Content to swap
     swap_type: str = "innerHTML"  # Type of swap
 )
     "Create a wrapper element for OOB swap."
@@ -267,7 +267,7 @@ def oob_element(
 
 ``` python
 def sse_element(endpoint: str, 
-                events: Optional[Union[str, List[str]]] = None, # TODO: Add description
+                events: Optional[Union[str, List[str]]] = None, # Event name(s) to listen for from SSE stream
                 auto_close: bool = True,  # Whether to auto-close on completion
                 swap_type: str = "message" # How to swap content
                )
@@ -285,20 +285,20 @@ def oob_update(
 
 ``` python
 def cleanup_sse_on_unload(
-) -> FT:  # TODO: Add return description
-    "TODO: Add function description"
+) -> FT:  # FastHTML element (Script) for cleanup
+    "Add script to cleanup SSE connections on page unload."
 ```
 
 ``` python
 def get_htmx_idx(
-    hdrs  # TODO: Add type hint and description
-): # TODO: Add type hint
-    "TODO: Add function description"
+    hdrs: List  # List of header elements to search
+) -> int:  # Index of HTMX script or -1 if not found
+    "Find the index of HTMX script in headers list."
 ```
 
 ``` python
 def insert_htmx_sse_ext(
-    hdrs:List  # TODO: Add type hint and description
+    hdrs: List  # List of header elements to modify
 )
     "Add HTMX SSE extension after HTMX script"
 ```
@@ -327,9 +327,9 @@ class HTMXSSEConnector:
     """
     
     def add_sse_attrs(element,
-                          endpoint: str,  # TODO: Add description
+                          endpoint: str,  # SSE endpoint URL to connect to
                           events: Optional[Union[str, List[str]]] = None,
-                          swap_type: str = "message",  # TODO: Add description
+                          swap_type: str = "message",  # How to swap content (message, innerHTML, outerHTML, etc.)
                           auto_reconnect: bool = True)
         "Add SSE connection attributes to an element.
 
@@ -344,11 +344,11 @@ Returns:
     The element with SSE attributes added"
     
     def create_sse_element(element_type=Div,
-                              endpoint: str = None,  # TODO: Add description
-                              element_id: str = None,  # TODO: Add description
+                              endpoint: str = None,  # SSE endpoint URL to connect to
+                              element_id: str = None,  # Optional ID for the element
                               events: Optional[Union[str, List[str]]] = None,
-                              swap_type: str = "message",  # TODO: Add description
-                              hidden: bool = False,  # TODO: Add description
+                              swap_type: str = "message",  # How to swap content when messages are received
+                              hidden: bool = False,  # Whether to hide the element initially
                               **kwargs)
         "Create an element with SSE connection configured.
 
@@ -365,8 +365,8 @@ Returns:
     Element configured for SSE connection"
     
     def sse_progress_element(job_id: str,
-                                endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # TODO: Add description
-                                element_id_template: str = "progress-span-{job_id}",  # TODO: Add description
+                                endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # URL template for the SSE endpoint
+                                element_id_template: str = "progress-span-{job_id}",  # Template for generating element ID
                                 initial_content=None)
         "Create an SSE-enabled progress element.
 
@@ -380,8 +380,8 @@ Returns:
     SSE-configured element for progress updates"
     
     def sse_status_element(job_id: str,
-                              endpoint_template: str = "/stream_job_status?job_id={job_id}",  # TODO: Add description
-                              element_id_template: str = "status-span-{job_id}",  # TODO: Add description
+                              endpoint_template: str = "/stream_job_status?job_id={job_id}",  # URL template for the SSE endpoint
+                              element_id_template: str = "status-span-{job_id}",  # Template for generating element ID
                               initial_content=None)
         "Create an SSE-enabled status element.
 
@@ -395,7 +395,7 @@ Returns:
     SSE-configured element for status updates"
     
     def create_sse_monitor_script(
-            config: Dict[str, Any]  # TODO: Add description
+            config: Dict[str, Any]  # Configuration dictionary for monitoring setup
         )
         "Create a monitoring script for SSE connections.
 
@@ -531,6 +531,6 @@ class SSEElementUpdater:
     
     def get_registered_events(
             self
-        ) -> List[str]:  # TODO: Add return description
+        ) -> List[str]:  # List of event types with registered handlers
         "Get list of registered event types."
 ```

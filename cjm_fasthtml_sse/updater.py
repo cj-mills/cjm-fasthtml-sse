@@ -32,9 +32,9 @@ class SSEElementUpdater:
         Decorator to register an update handler for a specific event type.            
         """
         def decorator(
-            handler: Callable  # TODO: Add description
+            handler: Callable  # The handler function to register
         ):
-            "TODO: Add function description"
+            """Register the handler and return it unchanged."""
             if event_type not in self._handlers:
                 self._handlers[event_type] = []
             
@@ -144,6 +144,6 @@ class SSEElementUpdater:
     
     def get_registered_events(
         self
-    ) -> List[str]:  # TODO: Add return description
+    ) -> List[str]:  # List of event types with registered handlers
         """Get list of registered event types."""
         return list(self._handlers.keys())
