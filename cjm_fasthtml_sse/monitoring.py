@@ -9,6 +9,8 @@ __all__ = ['SSEMonitorConfig', 'create_sse_monitor']
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+from .htmx import HTMXSSEConnector
+
 # %% ../nbs/monitoring.ipynb 4
 @dataclass
 class SSEMonitorConfig:
@@ -23,6 +25,7 @@ class SSEMonitorConfig:
 
 # %% ../nbs/monitoring.ipynb 5
 def create_sse_monitor(
+    htmx_sse: HTMXSSEConnector,
     config: SSEMonitorConfig  # SSEMonitorConfig instance
 ):
     """Create a connection monitor with the specified configuration."""

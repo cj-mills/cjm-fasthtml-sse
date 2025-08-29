@@ -31,9 +31,11 @@ graph LR
     htmx[htmx<br/>HTMXSSEConnector]
     monitoring[monitoring<br/>Connection monitoring & config]
     updater[updater<br/>SSEElementUpdater]
+
+    monitoring --> htmx
 ```
 
-No cross-module dependencies detected.
+*1 cross-module dependencies detected*
 
 ## CLI Reference
 
@@ -430,6 +432,7 @@ from cjm_fasthtml_sse.monitoring import (
 
 ``` python
 def create_sse_monitor(
+    htmx_sse: HTMXSSEConnector,
     config: SSEMonitorConfig  # SSEMonitorConfig instance
 )
     "Create a connection monitor with the specified configuration."
