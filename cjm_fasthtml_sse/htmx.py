@@ -8,7 +8,7 @@ __all__ = ['HTMXSSEConnector']
 # %% ../nbs/htmx.ipynb 3
 import json
 from typing import Optional, Dict, Any, Union, List
-from fasthtml.common import Div
+from fasthtml.common import Div, Script
 
 # %% ../nbs/htmx.ipynb 4
 class HTMXSSEConnector:
