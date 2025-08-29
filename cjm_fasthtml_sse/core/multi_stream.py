@@ -107,7 +107,8 @@ class MultiStreamManager:
                     if not entity or not is_active_fn(entity):
                         # Send final message and close
                         if endpoint.transform_fn:
-                            final_msg = endpoint.transform_fn(entity, final=True)
+                            # final_msg = endpoint.transform_fn(entity, final=True)
+                            final_msg = endpoint.transform_fn(entity)
                             yield sse_message(final_msg)
                         return
                     
