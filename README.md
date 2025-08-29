@@ -12,35 +12,28 @@ pip install cjm_fasthtml_sse
 ## Project Structure
 
     nbs/
-    └── core/ (6)
-        ├── broadcast.ipynb     # Broadcasting infrastructure for SSE cross-tab synchronization
-        ├── connections.ipynb   # Connection management for SSE clients
-        ├── multi_stream.ipynb  # Manage multiple related SSE streams for a single entity
-        ├── response.ipynb      # SSE response builders for complex UI updates
-        ├── routes.ipynb        # SSE route helpers and decorators for FastHTML
-        └── streaming.ipynb     # SSE streaming utilities and helpers
+    ├── core.ipynb       # Core SSE broadcast management system for FastHTML applications. Provides connection pooling, message distribution, and lifecycle hooks without UI dependencies.
+    ├── dispatcher.ipynb # Event routing system with namespace support, pattern matching, and middleware pipeline. Enables decoupled event handling with priority-based execution and wildcard routing.
+    ├── helpers.ipynb    # Utility functions and decorators for common SSE patterns in FastHTML. Includes the @sse_element
+    ├── htmx.ipynb       # HTMX-specific SSE integration helpers for FastHTML. Simplifies adding SSE attributes, creating SSE-enabled elements, and managing HTMX SSE connections.
+    ├── monitoring.ipynb # Connection monitoring and debugging tools for SSE applications. Provides configurable status indicators, automatic reconnection, and visibility change handling.
+    └── updater.ipynb    # Flexible element update system for building out-of-band (OOB) swap elements. Register handlers by event type and compose updates without coupling to specific UI components.
 
-Total: 6 notebooks across 4 directories
+Total: 6 notebooks
 
 ## Module Dependencies
 
 ``` mermaid
 graph LR
-    core_broadcast[core.broadcast<br/>Broadcast]
-    core_connections[core.connections<br/>Connections]
-    core_multi_stream[core.multi_stream<br/>Multi Stream]
-    core_response[core.response<br/>Response]
-    core_routes[core.routes<br/>Routes]
-    core_streaming[core.streaming<br/>Streaming]
-
-    core_multi_stream --> core_connections
-    core_multi_stream --> core_streaming
-    core_response --> core_streaming
-    core_routes --> core_connections
-    core_routes --> core_streaming
+    core[core<br/>Core SSEBroadcastManager]
+    dispatcher[dispatcher<br/>SSEEventDispatcher]
+    helpers[helpers<br/>UI helpers & utilities]
+    htmx[htmx<br/>HTMXSSEConnector]
+    monitoring[monitoring<br/>Connection monitoring & config]
+    updater[updater<br/>SSEElementUpdater]
 ```
 
-*5 cross-module dependencies detected*
+No cross-module dependencies detected.
 
 ## CLI Reference
 
@@ -50,628 +43,494 @@ No CLI commands found in this project.
 
 Detailed documentation for each module in the project:
 
-### Broadcast (`broadcast.ipynb`)
+### Core SSEBroadcastManager (`core.ipynb`)
 
-> Broadcasting infrastructure for SSE cross-tab synchronization
+> Core SSE broadcast management system for FastHTML applications.
+> Provides connection pooling, message distribution, and lifecycle hooks
+> without UI dependencies.
 
 #### Import
 
 ``` python
-from cjm_fasthtml_sse.core.broadcast import (
-    BroadcastMessage,
-    BroadcastManager,
-    create_broadcast_handler,
-    setup_broadcast_routes
+from cjm_fasthtml_sse.core import (
+    SSEBroadcastManager
 )
 ```
 
-#### Functions
+#### Classes
 
 ``` python
-def create_broadcast_handler(manager: BroadcastManager,
-                            element_builder: Optional[Callable] = None)
-    "Create a broadcast handler function that can be used with FastHTML routes."
+class SSEBroadcastManager:
+    def __init__(self, 
+                 max_queue_size: int = 100,    # TODO: Add description
+                 history_size: int = 50,    # TODO: Add description
+                 default_timeout: float = 0.1   # TODO: Add description
+                )
+    """
+    Manages SSE connections and broadcasting without UI dependencies.
+    
+    This class provides a reusable abstraction for managing Server-Sent Events
+    connections and broadcasting messages to multiple clients.
+    """
+    
+    def __init__(self,
+                     max_queue_size: int = 100,    # TODO: Add description
+                     history_size: int = 50,    # TODO: Add description
+                     default_timeout: float = 0.1   # TODO: Add description
+                    )
+        "Initialize the SSE Broadcast Manager."
+    
+    async def register_connection(
+            self,
+            queue: Optional[asyncio.Queue] = None  # Optional pre-existing queue, creates new one if not provided
+        ) -> asyncio.Queue:  # The queue associated with this connection
+        "Register a new SSE connection."
+    
+    async def unregister_connection(
+            self,
+            queue: asyncio.Queue  # The queue to unregister
+        )
+        "Unregister an SSE connection."
+    
+    async def broadcast(self, 
+                           event_type: str,   # Type of event being broadcast
+                           data: Dict[str, Any], # Data to broadcast
+                           timeout: Optional[float] = None # Optional timeout override for this broadcast
+                           ) -> int: # Number of successfully notified connections
+        "Broadcast a message to all connected clients."
+    
+    def on_connect(
+            self,
+            callback: Callable  # TODO: Add description
+        )
+        "Register a callback for new connections."
+    
+    def on_disconnect(
+            self,
+            callback: Callable  # TODO: Add description
+        )
+        "Register a callback for disconnections."
+    
+    def on_broadcast(
+            self,
+            callback: Callable  # TODO: Add description
+        )
+        "Register a callback for broadcasts (can modify messages)."
+    
+    def connection_count(
+            self
+        ) -> int:  # TODO: Add return description
+        "Get the current number of active connections."
+    
+    def get_history(
+            self,
+            limit: Optional[int] = None  # Optional limit on number of messages to return
+        ) -> list[Dict[str, Any]]:  # List of historical broadcast messages
+        "Get broadcast history."
 ```
 
+### SSEEventDispatcher (`dispatcher.ipynb`)
+
+> Event routing system with namespace support, pattern matching, and
+> middleware pipeline. Enables decoupled event handling with
+> priority-based execution and wildcard routing.
+
+#### Import
+
 ``` python
-def setup_broadcast_routes(app, 
-                          manager: BroadcastManager,  # The broadcast manager instance
-                          prefix: str = "/sse",  # URL prefix for SSE endpoints
-                          element_builder: Optional[Callable] = None)
-    "Setup broadcast routes on a FastHTML app."
+from cjm_fasthtml_sse.dispatcher import (
+    SSEEvent,
+    SSEEventDispatcher
+)
 ```
 
 #### Classes
 
 ``` python
 @dataclass
-class BroadcastMessage:
-    "Standard broadcast message format for SSE communication"
+class SSEEvent:
+    "Represents an SSE event with metadata."
     
     type: str
     data: Dict[str, Any]
-    timestamp: str = field(...)
-    metadata: Optional[Dict[str, Any]]
+    namespace: Optional[str]
+    priority: int = 0
+    timestamp: Optional[str]
     
-    def to_dict(
-            self
-        ) -> Dict[str, Any]:  # Dictionary representation of the message
-        "Convert message to dictionary format"
-    
-    def to_json(
-            self
-        ) -> str:  # JSON string representation of the message
-        "Convert message to JSON string"
-    
-    def to_sse(
-            self,
-            event_type: Optional[str] = 'message'  # SSE event type for the message
-        ) -> str:  # SSE formatted message string
-        "Convert to SSE message format using FastHTML's sse_message"
+    def full_type(self):
+            """Get the full event type including namespace."""
+            if self.namespace
+        "Get the full event type including namespace."
 ```
 
 ``` python
-class BroadcastManager:
-    def __init__(self,
-    "Manages SSE broadcast connections across multiple tabs/clients"
+class SSEEventDispatcher:
+    def __init__(self):
+        """Initialize the SSE Event Dispatcher."""
+        self._handlers: Dict[str, List[tuple[int, Callable]]] = {}
+    """
+    Decoupled event routing system with namespace support,
+    middleware, filtering, and priority-based handling.
+    """
     
-    def __init__(self,
-        "Initialize the broadcast manager."
+    def __init__(self):
+            """Initialize the SSE Event Dispatcher."""
+            self._handlers: Dict[str, List[tuple[int, Callable]]] = {}
+        "Initialize the SSE Event Dispatcher."
     
-    async def register(self, 
-                          connection_id: Optional[str] = None,  # Optional ID for the connection (auto-generated if not provided)
-                          metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
-                          ) -> tuple[str, asyncio.Queue]: # Tuple of (connection_id, queue)
-        "Register a new connection and return its queue."
-    
-    async def unregister(
+    def register_namespace(
             self,
-            connection_id: str  # ID of the connection to unregister
+            namespace: str  # TODO: Add description
         )
-        "Unregister a connection."
+        "Register a namespace for event organization."
     
-    async def broadcast(self, 
-                           message_type: str,  # Type of the message
-                           data: Dict[str, Any], # Message data
-                           metadata: Optional[Dict[str, Any]] = None, # Optional metadata
-                           exclude: Optional[Set[str]] = None # Set of connection IDs to exclude from broadcast
-                           ) -> int: # Number of successful broadcasts
-        "Broadcast a message to all connected clients."
-    
-    async def send_to(self,
-                         connection_id: str,  # Target connection ID
-                         message_type: str,  # Type of the message
-                         data: Dict[str, Any], # Message data
-                         metadata: Optional[Dict[str, Any]] = None # Optional metadata
-                         ) -> bool: # True if successful, False otherwise
-        "Send a message to a specific connection."
-    
-    def get_connection_count(
-            self
-        ) -> int:  # Number of active connections
-        "Get the number of active connections."
-    
-    def get_history(
+    def on(
             self,
-            limit: Optional[int] = None  # Maximum number of messages to return
-        ) -> list[BroadcastMessage]:  # List of broadcast messages from history
-        "Get broadcast history."
+            event_pattern: str,  # Event pattern (supports wildcards: *, **)
+            priority: int = 0  # Handler priority (higher runs first)
+        )
+        "Decorator to register an event handler with pattern matching."
+    
+    def add_handler(
+            self,
+            event_pattern: str,  # Event pattern (e.g., "job:*", "**:completed")
+            handler: Callable,  # Handler function
+            priority: int = 0  # Handler priority
+        )
+        "Add an event handler with pattern matching support."
+    
+    def add_middleware(
+            self,
+            middleware: Callable  # Function that takes (event, next) and calls next(event)
+        )
+        "Add middleware that processes events before handlers."
+    
+    def add_filter(
+            self,
+            filter_func: Callable[[SSEEvent], bool]  # Function that returns True to process event
+        )
+        "Add a filter to control which events are processed."
+    
+    def add_transformer(
+            self,
+            transformer: Callable[[SSEEvent], SSEEvent]  # Function that transforms an event
+        )
+        "Add a transformer to modify events before processing."
+    
+    async def dispatch(
+            self,
+            event: Union[SSEEvent, Dict[str, Any]]  # Event to dispatch (SSEEvent or dict)
+        ) -> List[Any]:  # List of handler results
+        "Dispatch an event through the processing pipeline."
+    
+    def clear_handlers(
+            self,
+            pattern: Optional[str] = None  # TODO: Add description
+        )
+        "Clear handlers for a specific pattern or all handlers."
 ```
 
-### Connections (`connections.ipynb`)
+### UI helpers & utilities (`helpers.ipynb`)
 
-> Connection management for SSE clients
+> Utility functions and decorators for common SSE patterns in FastHTML.
+> Includes the @sse_element
 
 #### Import
 
 ``` python
-from cjm_fasthtml_sse.core.connections import (
-    ConnectionState,
-    SSEConnection,
-    ConnectionRegistry,
-    create_sse_element,
+from cjm_fasthtml_sse.helpers import (
+    oob_swap,
+    oob_element,
+    sse_element,
+    oob_update,
     cleanup_sse_on_unload,
-    create_reconnection_script,
-    create_connection_manager_script
+    get_htmx_idx,
+    insert_htmx_sse_ext
 )
 ```
 
 #### Functions
 
 ``` python
-def create_sse_element(endpoint: str,
-                      element_id: Optional[str] = None,  # Optional element ID
-                      swap_strategy: str = "message",  # HTMX swap strategy (message, innerHTML, outerHTML, etc.)
-                      hidden: bool = False,  # Whether to hide the element
-                      **attrs # Additional attributes for the element
-                      ) -> Div:  # SSE-enabled Div element configured for HTMX
-    "Create an SSE-enabled HTML element."
+def oob_swap(
+    "Add OOB swap attributes to an element."
+```
+
+``` python
+def oob_element(
+    element_id: str,  # ID of the target element
+    content,    # Content to swap - TODO: Add type hint
+    swap_type: str = "innerHTML"  # Type of swap
+)
+    "Create a wrapper element for OOB swap."
+```
+
+``` python
+def sse_element(endpoint: str, 
+                events: Optional[Union[str, List[str]]] = None, # TODO: Add description
+                auto_close: bool = True,  # Whether to auto-close on completion
+                swap_type: str = "message" # How to swap content
+               )
+    "Decorator to add SSE capabilities to any element."
+```
+
+``` python
+def oob_update(
+    element_id: str,  # Target element ID
+    content: Any,  # Content to swap
+    swap_type: str = "innerHTML"  # Type of swap (innerHTML, outerHTML, etc.)
+)
+    "Create an out-of-band update element."
 ```
 
 ``` python
 def cleanup_sse_on_unload(
-) -> Script:  # Script element for cleanup
-    "Create a script to clean up SSE connections on page unload."
+) -> FT:  # TODO: Add return description
+    "TODO: Add function description"
 ```
 
 ``` python
-def create_reconnection_script(check_interval: int = 5000,
-                              max_retries: int = 5,  # Maximum number of reconnection attempts
-                              debug: bool = False  # Enable debug logging
-                              ) -> Script:  # Script element with reconnection logic
-    "Create a script for automatic SSE reconnection."
+def get_htmx_idx(
+    hdrs  # TODO: Add type hint and description
+): # TODO: Add type hint
+    "TODO: Add function description"
 ```
 
 ``` python
-def create_connection_manager_script(registry_endpoint: str = "/sse/connections",
-                                    update_interval: int = 10000  # Interval for updating connection stats (in milliseconds)
-                                    ) -> Script:  # Script element with connection management logic
-    "Create a script to manage and monitor connections."
+def insert_htmx_sse_ext(
+    hdrs:List  # TODO: Add type hint and description
+)
+    "Add HTMX SSE extension after HTMX script"
+```
+
+### HTMXSSEConnector (`htmx.ipynb`)
+
+> HTMX-specific SSE integration helpers for FastHTML. Simplifies adding
+> SSE attributes, creating SSE-enabled elements, and managing HTMX SSE
+> connections.
+
+#### Import
+
+``` python
+from cjm_fasthtml_sse.htmx import (
+    HTMXSSEConnector
+)
 ```
 
 #### Classes
 
 ``` python
-class ConnectionState(Enum):
-    "States for SSE connections"
-```
+class HTMXSSEConnector:
+    """
+    Provides helper functions for setting up HTMX SSE connections
+    without hardcoding specific implementations.
+    """
+    
+    def add_sse_attrs(element,
+                          endpoint: str,  # TODO: Add description
+                          events: Optional[Union[str, List[str]]] = None,
+                          swap_type: str = "message",  # TODO: Add description
+                          auto_reconnect: bool = True)
+        "Add SSE connection attributes to an element.
 
-``` python
-@dataclass
-class SSEConnection:
-    "Represents a single SSE connection"
+Args:
+    element: The element to add SSE attributes to
+    endpoint: SSE endpoint URL
+    events: Optional event name(s) to listen for
+    swap_type: How to swap content (message, innerHTML, outerHTML, etc.)
+    auto_reconnect: Whether to auto-reconnect on disconnect
     
-    connection_id: str
-    queue: asyncio.Queue
-    connection_type: str = 'global'
-    state: ConnectionState = ConnectionState.CONNECTING
-    metadata: Dict[str, Any] = field(...)
-    created_at: datetime = field(...)
-    last_activity: datetime = field(...)
-    message_count: int = 0
+Returns:
+    The element with SSE attributes added"
     
-    async def send(
-            self,
-            data: Any,  # Data to send
-            timeout: float = 1.0  # Timeout for the send operation
-        ) -> bool:  # True if successful, False otherwise
-        "Send data through the connection queue."
+    def create_sse_element(element_type=Div,
+                              endpoint: str = None,  # TODO: Add description
+                              element_id: str = None,  # TODO: Add description
+                              events: Optional[Union[str, List[str]]] = None,
+                              swap_type: str = "message",  # TODO: Add description
+                              hidden: bool = False,  # TODO: Add description
+                              **kwargs)
+        "Create an element with SSE connection configured.
+
+Args:
+    element_type: Type of element to create (Div, Span, etc.)
+    endpoint: SSE endpoint URL
+    element_id: Optional element ID
+    events: Optional event name(s) to listen for
+    swap_type: How to swap content
+    hidden: Whether to hide the element
+    **kwargs: Additional attributes for the element
     
-    async def heartbeat(
-            self
-        ) -> str:  # SSE formatted heartbeat message
-        "Generate a heartbeat message."
+Returns:
+    Element configured for SSE connection"
     
-    def close(self):
-            """Mark the connection as closed."""
-            self.state = ConnectionState.DISCONNECTED
+    def sse_progress_element(job_id: str,
+                                endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # TODO: Add description
+                                element_id_template: str = "progress-span-{job_id}",  # TODO: Add description
+                                initial_content=None)
+        "Create an SSE-enabled progress element.
+
+Args:
+    job_id: Job identifier
+    endpoint_template: Template for SSE endpoint URL
+    element_id_template: Template for element ID
+    initial_content: Initial content to display
+    
+Returns:
+    SSE-configured element for progress updates"
+    
+    def sse_status_element(job_id: str,
+                              endpoint_template: str = "/stream_job_status?job_id={job_id}",  # TODO: Add description
+                              element_id_template: str = "status-span-{job_id}",  # TODO: Add description
+                              initial_content=None)
+        "Create an SSE-enabled status element.
+
+Args:
+    job_id: Job identifier
+    endpoint_template: Template for SSE endpoint URL
+    element_id_template: Template for element ID
+    initial_content: Initial content to display
+    
+Returns:
+    SSE-configured element for status updates"
+    
+    def create_sse_monitor_script(
+            config: Dict[str, Any]  # TODO: Add description
+        )
+        "Create a monitoring script for SSE connections.
+
+Args:
+    config: Configuration dictionary with keys:
+        - sse_element_id: ID of SSE element to monitor
+        - status_element_id: ID of status display element
+        - auto_reconnect: Whether to auto-reconnect
+        - debug: Whether to enable debug logging
+        - status_indicators: Dict of status HTML strings
         
-        def is_active(
-            self
-        ) -> bool:  # True if connection is active, False otherwise
-        "Mark the connection as closed."
-    
-    def is_active(
-            self
-        ) -> bool:  # True if connection is active, False otherwise
-        "Check if connection is active."
+Returns:
+    Script element with monitoring code"
 ```
 
-``` python
-class ConnectionRegistry:
-    def __init__(
-        self,
-        debug: bool = False  # Enable debug logging
-    )
-    "Registry to track and manage SSE connections"
-    
-    def __init__(
-            self,
-            debug: bool = False  # Enable debug logging
-        )
-        "Initialize the connection registry."
-    
-    async def add_connection(self,
-                                conn_id: Optional[str] = None,  # Optional connection ID (auto-generated if not provided)
-                                conn_type: str = "global",  # Type of connection (e.g., 'global', 'job', 'user')
-                                queue_size: int = 100,  # Size of the message queue
-                                metadata: Optional[Dict[str, Any]] = None # Optional metadata for the connection
-                                ) -> SSEConnection: # The created SSEConnection
-        "Add a new connection to the registry."
-    
-    async def remove_connection(
-            self,
-            conn_id: str  # Connection ID to remove
-        )
-        "Remove a connection from the registry."
-    
-    def get_connection(
-            self,
-            conn_id: str  # Connection ID
-        ) -> Optional[SSEConnection]:  # The connection if found, None otherwise
-        "Get a specific connection."
-    
-    def get_connections(
-            self,
-            conn_type: Optional[str] = None  # Optional connection type to filter by
-        ) -> list[SSEConnection]:  # List of connections
-        "Get connections, optionally filtered by type."
-    
-    def get_active_connections(
-            self,
-            conn_type: Optional[str] = None  # Optional connection type to filter by
-        ) -> list[SSEConnection]:  # List of active connections
-        "Get active connections."
-    
-    def get_stats(
-            self
-        ) -> Dict[str, Any]:  # Dictionary with connection statistics
-        "Get registry statistics."
-```
+### Connection monitoring & config (`monitoring.ipynb`)
 
-### Multi Stream (`multi_stream.ipynb`)
-
-> Manage multiple related SSE streams for a single entity
+> Connection monitoring and debugging tools for SSE applications.
+> Provides configurable status indicators, automatic reconnection, and
+> visibility change handling.
 
 #### Import
 
 ``` python
-from cjm_fasthtml_sse.core.multi_stream import (
-    StreamEndpoint,
-    MultiStreamManager,
-    create_multi_stream_row
+from cjm_fasthtml_sse.monitoring import (
+    SSEMonitorConfig,
+    create_sse_monitor
 )
 ```
 
 #### Functions
 
 ``` python
-def create_multi_stream_row(
-    manager: MultiStreamManager,  # Multi-stream manager
-    entity_id: str,  # Entity ID
-    streams: List[Dict[str, Any]],  # List of stream configurations
-    row_builder: Callable,  # Function to build the row
-    active: bool = True  # Whether streams should be active
-) -> FT:  # Table row or similar element
-    "Create a row element with multiple SSE streams."
+def create_sse_monitor(
+    config: SSEMonitorConfig  # SSEMonitorConfig instance
+)
+    "Create a connection monitor with the specified configuration."
 ```
 
 #### Classes
 
 ``` python
 @dataclass
-class StreamEndpoint:
-    "Configuration for a single SSE stream endpoint"
+class SSEMonitorConfig:
+    "Configuration for SSE connection monitoring."
     
-    name: str  # Stream name (e.g., 'progress', 'status')
-    path_suffix: str  # URL path suffix (e.g., '_progress', '_status')
-    data_source: Callable  # Async generator or callable that produces data
-    transform_fn: Optional[Callable]  # Optional transform function
-    config: Optional[StreamConfig]  # Stream configuration
-    metadata: Dict[str, Any] = field(...)  # Additional metadata
-```
-
-``` python
-class MultiStreamManager:
-    def __init__(
-        self,
-        base_path: str = "/stream",  # Base path for stream endpoints
-        connection_registry: Optional[ConnectionRegistry] = None,  # Optional shared registry
-        default_config: Optional[StreamConfig] = None,  # Default config for all streams
-        debug: bool = False  # Enable debug logging
-    )
-    "Manages multiple related SSE streams for entities"
-    
-    def __init__(
-            self,
-            base_path: str = "/stream",  # Base path for stream endpoints
-            connection_registry: Optional[ConnectionRegistry] = None,  # Optional shared registry
-            default_config: Optional[StreamConfig] = None,  # Default config for all streams
-            debug: bool = False  # Enable debug logging
-        )
-        "Initialize the multi-stream manager."
-    
-    def register_endpoint(
-            self,
-            endpoint: StreamEndpoint  # Stream endpoint configuration
-        ) -> 'MultiStreamManager':  # Self for chaining
-        "Register a stream endpoint."
-    
-    def create_element(
-            self,
-            entity_id: str,  # Entity ID (e.g., job_id, user_id)
-            stream_name: str,  # Stream name to connect to
-            element_id: Optional[str] = None,  # Optional element ID
-            wrapper: Optional[Callable] = None,  # Optional wrapper function for the element
-            **attrs  # Additional attributes
-        ) -> FT:  # HTMX-enabled SSE element
-        "Create an SSE-enabled element for a specific stream."
-    
-    def create_handler(
-            self,
-            stream_name: str,  # Stream name
-            get_entity_fn: Callable,  # Function to get entity state
-            is_active_fn: Callable  # Function to check if entity is active
-        ) -> Callable:  # Route handler function
-        "Create a route handler for a specific stream."
-    
-    def setup_routes(
-            self,
-            app,  # FastHTML app
-            get_entity_fn: Callable,  # Function to get entity state
-            is_active_fn: Callable  # Function to check if entity is active
-        )
-        "Setup all stream routes on the app."
-```
-
-### Response (`response.ipynb`)
-
-> SSE response builders for complex UI updates
-
-#### Import
-
-``` python
-from cjm_fasthtml_sse.core.response import (
-    UpdateRule,
-    SSEResponseBuilder,
-    create_conditional_response,
-    create_state_response_builder
-)
-```
-
-#### Functions
-
-``` python
-def create_conditional_response(
-    conditions: List[Tuple[Callable, Callable]],  # List of (condition, builder) tuples
-    always_include: Optional[List[Callable]] = None,  # Builders that always run
-    context: Optional[Dict[str, Any]] = None  # Initial context
-) -> SSEResponseBuilder:  # Configured response builder
-    "Create a response builder with predefined conditions."
-```
-
-``` python
-def create_state_response_builder(
-    state_builders: Dict[str, Callable],  # Mapping of state names to builders
-    get_state_fn: Callable,  # Function to determine current state
-    default_builder: Optional[Callable] = None  # Default builder if no state matches
-) -> SSEResponseBuilder:  # Configured response builder
-    "Create a response builder for state-based updates."
-```
-
-#### Classes
-
-``` python
-@dataclass
-class UpdateRule:
-    "Rule for conditional element updates"
-    
-    condition: Callable  # Function that returns True if rule should apply
-    builder: Callable  # Function that builds the element(s)
-    target_id: Optional[str]  # Target element ID for OOB swap
-    swap_mode: str = 'innerHTML'  # Swap mode
-    priority: int = 0  # Higher priority rules are evaluated first
-```
-
-``` python
-class SSEResponseBuilder:
-    def __init__(
-        self,
-        debug: bool = False  # Enable debug logging
-    )
-    "Builder for complex SSE responses with conditional updates"
-    
-    def __init__(
-            self,
-            debug: bool = False  # Enable debug logging
-        )
-        "Initialize the response builder."
-    
-    def add_rule(
-            self,
-            condition: Callable,  # Condition function
-            builder: Callable,  # Element builder function
-            target_id: Optional[str] = None,  # Target ID for OOB
-            swap_mode: str = "innerHTML",  # Swap mode
-            priority: int = 0  # Rule priority
-        ) -> 'SSEResponseBuilder':  # Self for chaining
-        "Add a conditional update rule."
-    
-    def add_always(
-            self,
-            builder: Callable  # Element builder that always runs
-        ) -> 'SSEResponseBuilder':  # Self for chaining
-        "Add a builder that always runs."
-    
-    def set_context(
-            self,
-            **kwargs  # Context variables
-        ) -> 'SSEResponseBuilder':  # Self for chaining
-        "Set context variables for builders."
-    
-    def build(
-            self,
-            **kwargs  # Additional context for this build
-        ) -> FT:  # Built response
-        "Build the response based on rules and context."
-    
-    def clear_rules(
-            self
-        ) -> 'SSEResponseBuilder':  # Self for chaining
-        "Clear all rules."
-    
-    def clear_always(
-            self
-        ) -> 'SSEResponseBuilder':  # Self for chaining
-        "Clear always-include builders."
-```
-
-### Routes (`routes.ipynb`)
-
-> SSE route helpers and decorators for FastHTML
-
-#### Import
-
-``` python
-from cjm_fasthtml_sse.core.routes import (
-    SSERouteConfig,
-    create_sse_route,
-    async_error_generator,
-    sse_route,
-    setup_sse_routes,
-    create_conditional_sse_route
-)
-```
-
-#### Functions
-
-``` python
-def create_sse_route(
-    data_generator: Callable,  # Async generator function
-    transform_fn: Optional[Callable] = None,  # Optional transform function
-    config: Optional[SSERouteConfig] = None  # Route configuration
-) -> Callable:  # Route handler
-    "Create an SSE route handler with automatic connection management."
-```
-
-``` python
-async def async_error_generator(message: str)
-    "Generate an error message for SSE."
-```
-
-``` python
-def sse_route(
-    path: Optional[str] = None,  # Route path
-    transform_fn: Optional[Callable] = None,  # Transform function
-    config: Optional[SSERouteConfig] = None  # Route configuration
-) -> Callable:  # Decorator
-    "Decorator to create SSE routes."
-```
-
-``` python
-def setup_sse_routes(
-    app,  # FastHTML app
-    *handlers,  # SSE route handlers created with @sse_route
-    prefix: str = "",  # URL prefix
-    registry: Optional[ConnectionRegistry] = None  # Shared registry
-)
-    "Setup multiple SSE routes on an app."
-```
-
-``` python
-def create_conditional_sse_route(
-    active_generator: Callable,  # Generator for active entities
-    inactive_content: Callable,  # Function to generate content for inactive entities
-    is_active_fn: Callable,  # Function to check if entity is active
-    transform_fn: Optional[Callable] = None,  # Transform function
-    config: Optional[SSERouteConfig] = None  # Route configuration
-) -> Callable:  # Route handler
-    "Create an SSE route that handles both active and inactive states."
-```
-
-#### Classes
-
-``` python
-@dataclass
-class SSERouteConfig:
-    "Configuration for SSE route"
-    
-    connection_type: str = 'sse'  # Connection type for registry
-    stream_config: Optional[StreamConfig]  # Stream configuration
-    registry: Optional[ConnectionRegistry]  # Connection registry
-    validate_fn: Optional[Callable]  # Validation function
-    metadata_fn: Optional[Callable]  # Function to generate metadata
-    error_handler: Optional[Callable]  # Error handler function
-    debug: bool = False  # Enable debug logging
-```
-
-### Streaming (`streaming.ipynb`)
-
-> SSE streaming utilities and helpers
-
-#### Import
-
-``` python
-from cjm_fasthtml_sse.core.streaming import (
-    StreamConfig,
-    SSEStream,
-    OOBStreamBuilder
-)
-```
-
-#### Classes
-
-``` python
-@dataclass
-class StreamConfig:
-    "Configuration for SSE streaming"
-    
-    heartbeat_interval: float = 30.0
-    timeout: Optional[float]
-    send_initial_message: bool = True
-    initial_message: str = 'Connected'
-    send_close_message: bool = True
-    close_message: str = 'Connection closed'
+    sse_element_id: str = 'sse-connection'
+    status_element_id: str = 'connection-status'
+    auto_reconnect: bool = True
+    reconnect_delay: int = 3000
     debug: bool = False
+    heartbeat_timeout: int = 30000
+    status_indicators: Optional[Dict[str, str]]
 ```
 
+### SSEElementUpdater (`updater.ipynb`)
+
+> Flexible element update system for building out-of-band (OOB) swap
+> elements. Register handlers by event type and compose updates without
+> coupling to specific UI components.
+
+#### Import
+
 ``` python
-class SSEStream:
-    def __init__(
-        self,
-        config: Optional[StreamConfig] = None  # Stream configuration
-    )
-    "Generic SSE stream handler"
+from cjm_fasthtml_sse.updater import (
+    SSEElementUpdater
+)
+```
+
+#### Classes
+
+``` python
+class SSEElementUpdater:
+    def __init__(self):
+        """Initialize the SSE Element Updater."""
+        self._handlers: Dict[str, List[Callable]] = {}
+    """
+    Builds OOB swap elements without hardcoding UI components.
+    This class provides a flexible system for registering and executing
+    element update handlers based on event types.
+    """
     
-    def __init__(
+    def __init__(self):
+            """Initialize the SSE Element Updater."""
+            self._handlers: Dict[str, List[Callable]] = {}
+        "Initialize the SSE Element Updater."
+    
+    def register(
             self,
-            config: Optional[StreamConfig] = None  # Stream configuration
+            event_type: str,  # The event type to handle
+            priority: int = 0  # Handler priority (higher numbers run first)
+        ): # Decorator function
+        "Decorator to register an update handler for a specific event type."
+    
+    def register_handler(
+            self,
+            event_type: str,  # The event type to handle
+            handler: Callable,  # The handler function
+            priority: int = 0  # Handler priority (higher numbers run first)
         )
-        "Initialize the SSE stream."
+        "Register an update handler programmatically."
     
-    async def stream(self,
-                        data_source: Union[AsyncGenerator, Callable], # Async generator or callable that produces data
-                        transform_fn: Optional[Callable] = None # Optional function to transform data before sending
-                        ) -> AsyncGenerator[str, None]: # SSE formatted strings
-        "Stream data from a source through SSE."
-    
-    def stop(self)
-        "Stop the stream."
-```
-
-``` python
-class OOBStreamBuilder:
-    def __init__(self):
-        """Initialize the OOB stream builder."""
-        self.elements: List[Any] = []
-    "Build SSE messages with OOB (Out-of-Band) swaps"
-    
-    def __init__(self):
-            """Initialize the OOB stream builder."""
-            self.elements: List[Any] = []
-        "Initialize the OOB stream builder."
-    
-    def add_element(self,
-                       element: Any,  # The element to add
-                       target_id: Optional[str] = None,  # Target element ID for OOB swap
-                       swap_mode: str = "innerHTML",  # Swap mode (innerHTML, outerHTML, beforeend, afterbegin, etc.)
-                       wrap: bool = True  # If True and target_id is provided, wrap content in a Div with OOB attributes. If False, add OOB attributes directly to the element
-                       ) -> 'OOBStreamBuilder':  # Self for chaining
-        "Add an element with OOB swap configuration."
-    
-    def add_elements(
+    def set_default_handler(
             self,
-            elements: List[tuple]  # List of tuples: (element, target_id, swap_mode, wrap) or (element, target_id, swap_mode) or (element, target_id) or (element,)
-        ) -> 'OOBStreamBuilder':  # Self for chaining
-        "Add multiple elements with OOB configurations."
+            handler: Callable  # The default handler function
+        )
+        "Set a default handler for unregistered event types."
     
-    def build(
-            self
-        ) -> FT:  # Div with all elements
-        "Build the Div element with all elements."
+    def add_preprocessor(
+            self,
+            processor: Callable  # Function that processes (event_type, data) and returns modified data
+        )
+        "Add a preprocessor that runs before handlers."
     
-    def clear(
+    def add_postprocessor(
+            self,
+            processor: Callable  # Function that processes elements list and returns modified elements
+        )
+        "Add a postprocessor that runs after handlers."
+    
+    def create_elements(
+            self,
+            event_type: str,  # The type of event
+            data: Dict[str, Any]  # Event data
+        ) -> List[Any]:  # List of elements to be sent via SSE
+        "Create elements for a given event type and data."
+    
+    def clear_handlers(
+            self,
+            event_type: Optional[str] = None  # Optional specific event type to clear
+        )
+        "Clear handlers for a specific event type or all handlers."
+    
+    def get_registered_events(
             self
-        ) -> 'OOBStreamBuilder':  # Self for chaining
-        "Clear all elements."
+        ) -> List[str]:  # TODO: Add return description
+        "Get list of registered event types."
 ```
