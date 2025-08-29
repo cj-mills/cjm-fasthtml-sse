@@ -8,7 +8,9 @@ __all__ = ['oob_swap', 'oob_element', 'sse_element', 'oob_update', 'cleanup_sse_
 # %% ../nbs/helpers.ipynb 3
 from typing import Any, Callable, List, Optional, Union
 
-from fasthtml.common import FT, Script
+from fasthtml.common import Div, FT, Script
+
+from .htmx import HTMXSSEConnector
 
 # %% ../nbs/helpers.ipynb 4
 # Helper function for creating OOB swap elements
@@ -38,11 +40,13 @@ def oob_element(
     )
 
 # %% ../nbs/helpers.ipynb 6
-def sse_element(endpoint: str, 
-                events: Optional[Union[str, List[str]]] = None, # Event name(s) to listen for from SSE stream
-                auto_close: bool = True,  # Whether to auto-close on completion
-                swap_type: str = "message" # How to swap content
-               ):
+def sse_element(
+    htmx_sse: HTMXSSEConnector,
+    endpoint: str, 
+    events: Optional[Union[str, List[str]]] = None, # Event name(s) to listen for from SSE stream
+    auto_close: bool = True,  # Whether to auto-close on completion
+    swap_type: str = "message" # How to swap content
+):
     """Decorator to add SSE capabilities to any element."""
     def decorator(
         element_func: Callable  # Function that creates an element
