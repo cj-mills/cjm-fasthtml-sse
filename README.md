@@ -17,10 +17,9 @@ pip install cjm_fasthtml_sse
     ├── helpers.ipynb    # Utility functions and decorators for common SSE patterns in FastHTML. Includes the @sse_element
     ├── htmx.ipynb       # HTMX-specific SSE integration helpers for FastHTML. Simplifies adding SSE attributes, creating SSE-enabled elements, and managing HTMX SSE connections.
     ├── monitoring.ipynb # Connection monitoring and debugging tools for SSE applications. Provides configurable status indicators, automatic reconnection, and visibility change handling.
-    ├── shutdown.ipynb   # Handles graceful shutdown of SSE connections when the server exits.
     └── updater.ipynb    # Flexible element update system for building out-of-band (OOB) swap elements. Register handlers by event type and compose updates without coupling to specific UI components.
 
-Total: 7 notebooks
+Total: 6 notebooks
 
 ## Module Dependencies
 
@@ -31,15 +30,13 @@ graph LR
     helpers[helpers<br/>UI helpers & utilities]
     htmx[htmx<br/>HTMXSSEConnector]
     monitoring[monitoring<br/>Connection monitoring & config]
-    shutdown[shutdown<br/>SSEShutdownHandler]
     updater[updater<br/>SSEElementUpdater]
 
     helpers --> htmx
     monitoring --> htmx
-    shutdown --> core
 ```
 
-*3 cross-module dependencies detected*
+*2 cross-module dependencies detected*
 
 ## CLI Reference
 
@@ -458,64 +455,6 @@ class SSEMonitorConfig:
     debug: bool = False
     heartbeat_timeout: int = 30000
     status_indicators: Optional[Dict[str, str]]
-```
-
-### SSEShutdownHandler (`shutdown.ipynb`)
-
-> Handles graceful shutdown of SSE connections when the server exits.
-
-#### Import
-
-``` python
-from cjm_fasthtml_sse.shutdown import (
-    SSEShutdownHandler
-)
-```
-
-#### Classes
-
-``` python
-class SSEShutdownHandler:
-    def __init__(self, sse_manager, shutdown_delay: float = 1.0):
-      self.sse_manager = sse_manager
-      self.shutdown_delay = shutdown_delay
-      self.should_exit = False
-      self.active_connections: Set = set()
-    """
-    Handles graceful shutdown of SSE connections when the server exits, 
-    by ensuring all SSE clients receive a shutdown notification before 
-    the server terminates, allowing them to cleanly close connections 
-    without attempting reconnection.
-    """
-    
-    def __init__(self, sse_manager, shutdown_delay: float = 1.0):
-          self.sse_manager = sse_manager
-          self.shutdown_delay = shutdown_delay
-          self.should_exit = False
-          self.active_connections: Set = set()
-    
-    def install(self):
-          """Install the shutdown handler into Uvicorn's Server class."""
-          self._original_handler = Server.handle_exit
-          Server.handle_exit = self._handle_exit
-    
-      def uninstall(self)
-        "Install the shutdown handler into Uvicorn's Server class."
-    
-    def uninstall(self):
-          """Restore the original Uvicorn handler."""
-          if self._original_handler
-        "Restore the original Uvicorn handler."
-    
-    def track_connection(self, task):
-          """Track an active connection task."""
-          self.active_connections.add(task)
-    
-      def untrack_connection(self, task)
-        "Track an active connection task."
-    
-    def untrack_connection(self, task)
-        "Remove a connection task from tracking."
 ```
 
 ### SSEElementUpdater (`updater.ipynb`)
