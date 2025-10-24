@@ -51,9 +51,7 @@ def sse_element(
     def decorator(
         element_func: Callable  # Function that creates an element
     ):
-        """Inner decorator function."""
         def wrapper(*args, **kwargs):
-            """Wrap element creation with SSE attributes."""
             # Create the base element
             element = element_func(*args, **kwargs)
             

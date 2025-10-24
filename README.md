@@ -69,19 +69,14 @@ class SSEBroadcastManager:
                  history_size: int = 50,    # Number of broadcast messages to keep in history
                  default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                 )
-    """
-    Manages SSE connections and broadcasting without UI dependencies.
-    
-    This class provides a reusable abstraction for managing Server-Sent Events
-    connections and broadcasting messages to multiple clients.
-    """
+    "Manages SSE connections and broadcasting without UI dependencies."
     
     def __init__(self,
                      max_queue_size: int = 100,    # Maximum number of messages per connection queue
                      history_size: int = 50,    # Number of broadcast messages to keep in history
                      default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                     )
-        "Initialize the SSE Broadcast Manager."
+        "Initialize the broadcast manager with connection pooling and message history."
     
     async def register_connection(
             self,
@@ -169,17 +164,14 @@ class SSEEvent:
 ``` python
 class SSEEventDispatcher:
     def __init__(self):
-        """Initialize the SSE Event Dispatcher."""
+        """Initialize the event dispatcher with empty handler registry."""
         self._handlers: Dict[str, List[tuple[int, Callable]]] = {}
-    """
-    Decoupled event routing system with namespace support,
-    middleware, filtering, and priority-based handling.
-    """
+    "Decoupled event routing system with namespace support, middleware, filtering, and priority-based handling."
     
     def __init__(self):
-            """Initialize the SSE Event Dispatcher."""
+            """Initialize the event dispatcher with empty handler registry."""
             self._handlers: Dict[str, List[tuple[int, Callable]]] = {}
-        "Initialize the SSE Event Dispatcher."
+        "Initialize the event dispatcher with empty handler registry."
     
     def register_namespace(
             self,
@@ -326,27 +318,14 @@ from cjm_fasthtml_sse.htmx import (
 
 ``` python
 class HTMXSSEConnector:
-    """
-    Provides helper functions for setting up HTMX SSE connections
-    without hardcoding specific implementations.
-    """
+    "Provides helper functions for setting up HTMX SSE connections without hardcoding specific implementations."
     
     def add_sse_attrs(element,
                           endpoint: str,  # SSE endpoint URL to connect to
                           events: Optional[Union[str, List[str]]] = None,
                           swap_type: str = "message",  # How to swap content (message, innerHTML, outerHTML, etc.)
                           auto_reconnect: bool = True)
-        "Add SSE connection attributes to an element.
-
-Args:
-    element: The element to add SSE attributes to
-    endpoint: SSE endpoint URL
-    events: Optional event name(s) to listen for
-    swap_type: How to swap content (message, innerHTML, outerHTML, etc.)
-    auto_reconnect: Whether to auto-reconnect on disconnect
-    
-Returns:
-    The element with SSE attributes added"
+        "Add SSE connection attributes to an element."
     
     def create_sse_element(element_type=Div,
                               endpoint: str = None,  # SSE endpoint URL to connect to
@@ -355,65 +334,24 @@ Returns:
                               swap_type: str = "message",  # How to swap content when messages are received
                               hidden: bool = False,  # Whether to hide the element initially
                               **kwargs)
-        "Create an element with SSE connection configured.
-
-Args:
-    element_type: Type of element to create (Div, Span, etc.)
-    endpoint: SSE endpoint URL
-    element_id: Optional element ID
-    events: Optional event name(s) to listen for
-    swap_type: How to swap content
-    hidden: Whether to hide the element
-    **kwargs: Additional attributes for the element
-    
-Returns:
-    Element configured for SSE connection"
+        "Create an element with SSE connection configured."
     
     def sse_progress_element(job_id: str,
                                 endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # URL template for the SSE endpoint
                                 element_id_template: str = "progress-span-{job_id}",  # Template for generating element ID
                                 initial_content=None)
-        "Create an SSE-enabled progress element.
-
-Args:
-    job_id: Job identifier
-    endpoint_template: Template for SSE endpoint URL
-    element_id_template: Template for element ID
-    initial_content: Initial content to display
-    
-Returns:
-    SSE-configured element for progress updates"
+        "Create an SSE-enabled progress element."
     
     def sse_status_element(job_id: str,
                               endpoint_template: str = "/stream_job_status?job_id={job_id}",  # URL template for the SSE endpoint
                               element_id_template: str = "status-span-{job_id}",  # Template for generating element ID
                               initial_content=None)
-        "Create an SSE-enabled status element.
-
-Args:
-    job_id: Job identifier
-    endpoint_template: Template for SSE endpoint URL
-    element_id_template: Template for element ID
-    initial_content: Initial content to display
-    
-Returns:
-    SSE-configured element for status updates"
+        "Create an SSE-enabled status element."
     
     def create_sse_monitor_script(
             config: Dict[str, Any]  # Configuration dictionary for monitoring setup
-        )
-        "Create a monitoring script for SSE connections.
-
-Args:
-    config: Configuration dictionary with keys:
-        - sse_element_id: ID of SSE element to monitor
-        - status_element_id: ID of status display element
-        - auto_reconnect: Whether to auto-reconnect
-        - debug: Whether to enable debug logging
-        - status_indicators: Dict of status HTML strings
-        
-Returns:
-    Script element with monitoring code"
+        ) -> FT:  # Script element with monitoring code
+        "Create a monitoring script for SSE connections."
 ```
 
 ### Connection monitoring & config (`monitoring.ipynb`)
@@ -437,7 +375,7 @@ from cjm_fasthtml_sse.monitoring import (
 def create_sse_monitor(
     htmx_sse: HTMXSSEConnector,
     config: SSEMonitorConfig  # SSEMonitorConfig instance
-)
+) -> FT:  # Script element with monitoring code
     "Create a connection monitor with the specified configuration."
 ```
 
@@ -476,18 +414,14 @@ from cjm_fasthtml_sse.updater import (
 ``` python
 class SSEElementUpdater:
     def __init__(self):
-        """Initialize the SSE Element Updater."""
+        """Initialize the updater with empty handler registry."""
         self._handlers: Dict[str, List[Callable]] = {}
-    """
-    Builds OOB swap elements without hardcoding UI components.
-    This class provides a flexible system for registering and executing
-    element update handlers based on event types.
-    """
+    "Builds OOB swap elements without hardcoding UI components."
     
     def __init__(self):
-            """Initialize the SSE Element Updater."""
+            """Initialize the updater with empty handler registry."""
             self._handlers: Dict[str, List[Callable]] = {}
-        "Initialize the SSE Element Updater."
+        "Initialize the updater with empty handler registry."
     
     def register(
             self,

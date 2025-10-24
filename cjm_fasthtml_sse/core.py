@@ -14,21 +14,14 @@ import json
 
 # %% ../nbs/core.ipynb 4
 class SSEBroadcastManager:
-    """
-    Manages SSE connections and broadcasting without UI dependencies.
-    
-    This class provides a reusable abstraction for managing Server-Sent Events
-    connections and broadcasting messages to multiple clients.
-    """
+    """Manages SSE connections and broadcasting without UI dependencies."""
     
     def __init__(self, 
                  max_queue_size: int = 100,    # Maximum number of messages per connection queue
                  history_size: int = 50,    # Number of broadcast messages to keep in history
                  default_timeout: float = 0.1   # Default timeout in seconds for queue operations
                 ):
-        """
-        Initialize the SSE Broadcast Manager.
-        """
+        """Initialize the broadcast manager with connection pooling and message history."""
         self.connections: Set[asyncio.Queue] = set()
         self.lock = asyncio.Lock()
         self.history: Deque[Dict[str, Any]] = deque(maxlen=history_size)
@@ -44,9 +37,7 @@ class SSEBroadcastManager:
         self,
         queue: Optional[asyncio.Queue] = None  # Optional pre-existing queue, creates new one if not provided
     ) -> asyncio.Queue:  # The queue associated with this connection
-        """
-        Register a new SSE connection.            
-        """
+        """Register a new SSE connection."""
         if queue is None:
             queue = asyncio.Queue(maxsize=self.max_queue_size)
         
@@ -66,9 +57,7 @@ class SSEBroadcastManager:
         self,
         queue: asyncio.Queue  # The queue to unregister
     ):
-        """
-        Unregister an SSE connection.
-        """
+        """Unregister an SSE connection."""
         async with self.lock:
             self.connections.discard(queue)
         
@@ -84,9 +73,7 @@ class SSEBroadcastManager:
                        data: Dict[str, Any], # Data to broadcast
                        timeout: Optional[float] = None # Optional timeout override for this broadcast
                        ) -> int: # Number of successfully notified connections
-        """
-        Broadcast a message to all connected clients.            
-        """
+        """Broadcast a message to all connected clients."""
         message = {
             "type": event_type,
             "timestamp": datetime.now().isoformat(),
@@ -164,9 +151,7 @@ class SSEBroadcastManager:
         self,
         limit: Optional[int] = None  # Optional limit on number of messages to return
     ) -> list[Dict[str, Any]]:  # List of historical broadcast messages
-        """
-        Get broadcast history.
-        """
+        """Get broadcast history."""
         if limit:
             return list(self.history)[-limit:]
         return list(self.history)

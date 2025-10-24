@@ -9,6 +9,8 @@ __all__ = ['SSEMonitorConfig', 'create_sse_monitor']
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+from fasthtml.common import FT
+
 from .htmx import HTMXSSEConnector
 
 # %% ../nbs/monitoring.ipynb 4
@@ -27,7 +29,7 @@ class SSEMonitorConfig:
 def create_sse_monitor(
     htmx_sse: HTMXSSEConnector,
     config: SSEMonitorConfig  # SSEMonitorConfig instance
-):
+) -> FT:  # Script element with monitoring code
     """Create a connection monitor with the specified configuration."""
     return htmx_sse.create_sse_monitor_script({
         'sse_element_id': config.sse_element_id,

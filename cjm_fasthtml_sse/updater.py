@@ -10,14 +10,10 @@ from typing import Callable, Dict, Any, List, Optional, Union
 
 # %% ../nbs/updater.ipynb 4
 class SSEElementUpdater:
-    """
-    Builds OOB swap elements without hardcoding UI components.
-    This class provides a flexible system for registering and executing
-    element update handlers based on event types.
-    """
+    """Builds OOB swap elements without hardcoding UI components."""
     
     def __init__(self):
-        """Initialize the SSE Element Updater."""
+        """Initialize the updater with empty handler registry."""
         self._handlers: Dict[str, List[Callable]] = {}
         self._default_handler: Optional[Callable] = None
         self._preprocessors: List[Callable] = []
@@ -28,13 +24,10 @@ class SSEElementUpdater:
         event_type: str,  # The event type to handle
         priority: int = 0  # Handler priority (higher numbers run first)
     ): # Decorator function
-        """
-        Decorator to register an update handler for a specific event type.            
-        """
+        """Decorator to register an update handler for a specific event type."""
         def decorator(
             handler: Callable  # The handler function to register
         ):
-            """Register the handler and return it unchanged."""
             if event_type not in self._handlers:
                 self._handlers[event_type] = []
             
@@ -52,9 +45,7 @@ class SSEElementUpdater:
         handler: Callable,  # The handler function
         priority: int = 0  # Handler priority (higher numbers run first)
     ):
-        """
-        Register an update handler programmatically.
-        """
+        """Register an update handler programmatically."""
         if event_type not in self._handlers:
             self._handlers[event_type] = []
         
@@ -65,27 +56,21 @@ class SSEElementUpdater:
         self,
         handler: Callable  # The default handler function
     ):
-        """
-        Set a default handler for unregistered event types. 
-        """
+        """Set a default handler for unregistered event types."""
         self._default_handler = handler
     
     def add_preprocessor(
         self,
         processor: Callable  # Function that processes (event_type, data) and returns modified data
     ):
-        """
-        Add a preprocessor that runs before handlers.
-        """
+        """Add a preprocessor that runs before handlers."""
         self._preprocessors.append(processor)
     
     def add_postprocessor(
         self,
         processor: Callable  # Function that processes elements list and returns modified elements
     ):
-        """
-        Add a postprocessor that runs after handlers.
-        """
+        """Add a postprocessor that runs after handlers."""
         self._postprocessors.append(processor)
     
     def create_elements(
@@ -93,9 +78,7 @@ class SSEElementUpdater:
         event_type: str,  # The type of event
         data: Dict[str, Any]  # Event data
     ) -> List[Any]:  # List of elements to be sent via SSE
-        """
-        Create elements for a given event type and data.            
-        """
+        """Create elements for a given event type and data."""
         # Run preprocessors
         processed_data = data
         for processor in self._preprocessors:
@@ -134,9 +117,7 @@ class SSEElementUpdater:
         self,
         event_type: Optional[str] = None  # Optional specific event type to clear
     ):
-        """
-        Clear handlers for a specific event type or all handlers.
-        """
+        """Clear handlers for a specific event type or all handlers."""
         if event_type:
             self._handlers.pop(event_type, None)
         else:

@@ -30,13 +30,10 @@ class SSEEvent:
 
 # %% ../nbs/dispatcher.ipynb 5
 class SSEEventDispatcher:
-    """
-    Decoupled event routing system with namespace support,
-    middleware, filtering, and priority-based handling.
-    """
+    """Decoupled event routing system with namespace support, middleware, filtering, and priority-based handling."""
     
     def __init__(self):
-        """Initialize the SSE Event Dispatcher."""
+        """Initialize the event dispatcher with empty handler registry."""
         self._handlers: Dict[str, List[tuple[int, Callable]]] = {}
         self._middleware: List[Callable] = []
         self._filters: List[Callable] = []
@@ -55,13 +52,10 @@ class SSEEventDispatcher:
         event_pattern: str,  # Event pattern (supports wildcards: *, **)
         priority: int = 0  # Handler priority (higher runs first)
     ):
-        """
-        Decorator to register an event handler with pattern matching.
-        """
+        """Decorator to register an event handler with pattern matching."""
         def decorator(
             handler: Callable  # Event handler function to register
         ):
-            """Register the handler and return it unchanged."""
             self.add_handler(event_pattern, handler, priority)
             return handler
         return decorator
@@ -72,9 +66,7 @@ class SSEEventDispatcher:
         handler: Callable,  # Handler function
         priority: int = 0  # Handler priority
     ):
-        """
-        Add an event handler with pattern matching support.
-        """
+        """Add an event handler with pattern matching support."""
         if event_pattern not in self._handlers:
             self._handlers[event_pattern] = []
         
@@ -85,27 +77,21 @@ class SSEEventDispatcher:
         self,
         middleware: Callable  # Function that takes (event, next) and calls next(event)
     ):
-        """
-        Add middleware that processes events before handlers.
-        """
+        """Add middleware that processes events before handlers."""
         self._middleware.append(middleware)
     
     def add_filter(
         self,
         filter_func: Callable[[SSEEvent], bool]  # Function that returns True to process event
     ):
-        """
-        Add a filter to control which events are processed.
-        """
+        """Add a filter to control which events are processed."""
         self._filters.append(filter_func)
     
     def add_transformer(
         self,
         transformer: Callable[[SSEEvent], SSEEvent]  # Function that transforms an event
     ):
-        """
-        Add a transformer to modify events before processing.
-        """
+        """Add a transformer to modify events before processing."""
         self._transformers.append(transformer)
     
     def _match_pattern(
@@ -113,15 +99,7 @@ class SSEEventDispatcher:
         pattern: str,  # Pattern to match against (supports wildcards)
         event_type: str  # Event type string to test
     ) -> bool:  # True if pattern matches event type
-        """
-        Check if an event type matches a pattern.
-        
-        Patterns:
-        - exact: "job:created" matches only "job:created"
-        - wildcard: "job:*" matches "job:created", "job:updated", etc.
-        - deep wildcard: "**:created" matches any namespace with "created"
-        - full wildcard: "*" matches everything
-        """
+        """Check if an event type matches a pattern (supports *, ** wildcards)."""
         if pattern == "*" or pattern == "**":
             return True
             
@@ -135,9 +113,7 @@ class SSEEventDispatcher:
         self,
         event: Union[SSEEvent, Dict[str, Any]]  # Event to dispatch (SSEEvent or dict)
     ) -> List[Any]:  # List of handler results
-        """
-        Dispatch an event through the processing pipeline.            
-        """
+        """Dispatch an event through the processing pipeline."""
         # Convert dict to SSEEvent if needed
         if isinstance(event, dict):
             event = SSEEvent(
@@ -161,7 +137,6 @@ class SSEEventDispatcher:
         async def process_event(
             evt: SSEEvent  # Event to process through handlers
         ):
-            """Process event through all matching handlers."""
             results = []
             
             # Find matching handlers
@@ -185,7 +160,6 @@ class SSEEventDispatcher:
                 evt: SSEEvent,  # Event to process
                 next_proc: Callable = next_processor  # Next processor in chain
             ):
-                """Apply middleware and call next processor."""
                 if asyncio.iscoroutinefunction(middleware):
                     return await middleware(evt, next_proc)
                 else:

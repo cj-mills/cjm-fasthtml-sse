@@ -6,16 +6,12 @@
 __all__ = ['HTMXSSEConnector']
 
 # %% ../nbs/htmx.ipynb 3
-import json
 from typing import Optional, Dict, Any, Union, List
-from fasthtml.common import Div, Script, Span
+from fasthtml.common import Div, FT, Script, Span
 
 # %% ../nbs/htmx.ipynb 4
 class HTMXSSEConnector:
-    """
-    Provides helper functions for setting up HTMX SSE connections
-    without hardcoding specific implementations.
-    """
+    """Provides helper functions for setting up HTMX SSE connections without hardcoding specific implementations."""
     
     @staticmethod
     def add_sse_attrs(element, 
@@ -23,19 +19,7 @@ class HTMXSSEConnector:
                       events: Optional[Union[str, List[str]]] = None,
                       swap_type: str = "message",  # How to swap content (message, innerHTML, outerHTML, etc.)
                       auto_reconnect: bool = True):
-        """
-        Add SSE connection attributes to an element.
-        
-        Args:
-            element: The element to add SSE attributes to
-            endpoint: SSE endpoint URL
-            events: Optional event name(s) to listen for
-            swap_type: How to swap content (message, innerHTML, outerHTML, etc.)
-            auto_reconnect: Whether to auto-reconnect on disconnect
-            
-        Returns:
-            The element with SSE attributes added
-        """
+        """Add SSE connection attributes to an element."""
         if hasattr(element, 'attrs'):
             element.attrs['hx-ext'] = 'sse'
             element.attrs['sse-connect'] = endpoint
@@ -62,21 +46,7 @@ class HTMXSSEConnector:
                           swap_type: str = "message",  # How to swap content when messages are received
                           hidden: bool = False,  # Whether to hide the element initially
                           **kwargs):
-        """
-        Create an element with SSE connection configured.
-        
-        Args:
-            element_type: Type of element to create (Div, Span, etc.)
-            endpoint: SSE endpoint URL
-            element_id: Optional element ID
-            events: Optional event name(s) to listen for
-            swap_type: How to swap content
-            hidden: Whether to hide the element
-            **kwargs: Additional attributes for the element
-            
-        Returns:
-            Element configured for SSE connection
-        """
+        """Create an element with SSE connection configured."""
         attrs = kwargs.copy()
         
         if element_id:
@@ -105,18 +75,7 @@ class HTMXSSEConnector:
                             endpoint_template: str = "/stream_job_progress?job_id={job_id}",  # URL template for the SSE endpoint
                             element_id_template: str = "progress-span-{job_id}",  # Template for generating element ID
                             initial_content=None):
-        """
-        Create an SSE-enabled progress element.
-        
-        Args:
-            job_id: Job identifier
-            endpoint_template: Template for SSE endpoint URL
-            element_id_template: Template for element ID
-            initial_content: Initial content to display
-            
-        Returns:
-            SSE-configured element for progress updates
-        """
+        """Create an SSE-enabled progress element."""
         return Span(
             initial_content or "",
             id=element_id_template.format(job_id=job_id),
@@ -130,18 +89,7 @@ class HTMXSSEConnector:
                           endpoint_template: str = "/stream_job_status?job_id={job_id}",  # URL template for the SSE endpoint
                           element_id_template: str = "status-span-{job_id}",  # Template for generating element ID
                           initial_content=None):
-        """
-        Create an SSE-enabled status element.
-        
-        Args:
-            job_id: Job identifier
-            endpoint_template: Template for SSE endpoint URL
-            element_id_template: Template for element ID
-            initial_content: Initial content to display
-            
-        Returns:
-            SSE-configured element for status updates
-        """
+        """Create an SSE-enabled status element."""
         return Span(
             initial_content or "",
             id=element_id_template.format(job_id=job_id),
@@ -153,21 +101,8 @@ class HTMXSSEConnector:
     @staticmethod
     def create_sse_monitor_script(
         config: Dict[str, Any]  # Configuration dictionary for monitoring setup
-    ):
-        """
-        Create a monitoring script for SSE connections.
-        
-        Args:
-            config: Configuration dictionary with keys:
-                - sse_element_id: ID of SSE element to monitor
-                - status_element_id: ID of status display element
-                - auto_reconnect: Whether to auto-reconnect
-                - debug: Whether to enable debug logging
-                - status_indicators: Dict of status HTML strings
-                
-        Returns:
-            Script element with monitoring code
-        """
+    ) -> FT:  # Script element with monitoring code
+        """Create a monitoring script for SSE connections."""
         sse_id = config.get('sse_element_id', 'sse-connection')
         status_id = config.get('status_element_id', 'connection-status')
         auto_reconnect = config.get('auto_reconnect', True)
