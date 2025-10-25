@@ -1,0 +1,122 @@
+[
+  {
+    "objectID": "htmx.html",
+    "href": "htmx.html",
+    "title": "HTMXSSEConnector",
+    "section": "",
+    "text": "source\n\nHTMXSSEConnector\n\n HTMXSSEConnector ()\n\nProvides helper functions for setting up HTMX SSE connections without hardcoding specific implementations.\n\n# Initialize the HTMX SSE Connector\nhtmx_sse = HTMXSSEConnector()",
+    "crumbs": [
+      "HTMXSSEConnector"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "cjm-fasthtml-sse",
+    "section": "",
+    "text": "pip install cjm_fasthtml_sse",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "cjm-fasthtml-sse",
+    "section": "",
+    "text": "pip install cjm_fasthtml_sse",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "index.html#project-structure",
+    "href": "index.html#project-structure",
+    "title": "cjm-fasthtml-sse",
+    "section": "Project Structure",
+    "text": "Project Structure\nnbs/\n├── core.ipynb       # Core SSE broadcast management system for FastHTML applications. Provides connection pooling, message distribution, and lifecycle hooks without UI dependencies.\n├── dispatcher.ipynb # Event routing system with namespace support, pattern matching, and middleware pipeline. Enables decoupled event handling with priority-based execution and wildcard routing.\n├── helpers.ipynb    # Utility functions and decorators for common SSE patterns in FastHTML. Includes the @sse_element\n├── htmx.ipynb       # HTMX-specific SSE integration helpers for FastHTML. Simplifies adding SSE attributes, creating SSE-enabled elements, and managing HTMX SSE connections.\n├── monitoring.ipynb # Connection monitoring and debugging tools for SSE applications. Provides configurable status indicators, automatic reconnection, and visibility change handling.\n└── updater.ipynb    # Flexible element update system for building out-of-band (OOB) swap elements. Register handlers by event type and compose updates without coupling to specific UI components.\nTotal: 6 notebooks",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "index.html#module-dependencies",
+    "href": "index.html#module-dependencies",
+    "title": "cjm-fasthtml-sse",
+    "section": "Module Dependencies",
+    "text": "Module Dependencies\ngraph LR\n    core[core&lt;br/&gt;Core SSEBroadcastManager]\n    dispatcher[dispatcher&lt;br/&gt;SSEEventDispatcher]\n    helpers[helpers&lt;br/&gt;UI helpers & utilities]\n    htmx[htmx&lt;br/&gt;HTMXSSEConnector]\n    monitoring[monitoring&lt;br/&gt;Connection monitoring & config]\n    updater[updater&lt;br/&gt;SSEElementUpdater]\n\n    helpers --&gt; htmx\n    monitoring --&gt; htmx\n2 cross-module dependencies detected",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "index.html#cli-reference",
+    "href": "index.html#cli-reference",
+    "title": "cjm-fasthtml-sse",
+    "section": "CLI Reference",
+    "text": "CLI Reference\nNo CLI commands found in this project.",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "index.html#module-overview",
+    "href": "index.html#module-overview",
+    "title": "cjm-fasthtml-sse",
+    "section": "Module Overview",
+    "text": "Module Overview\nDetailed documentation for each module in the project:\n\nCore SSEBroadcastManager (core.ipynb)\n\nCore SSE broadcast management system for FastHTML applications. Provides connection pooling, message distribution, and lifecycle hooks without UI dependencies.\n\n\nImport\nfrom cjm_fasthtml_sse.core import (\n    SSEBroadcastManager\n)\n\n\nClasses\nclass SSEBroadcastManager:\n    def __init__(self, \n                 max_queue_size: int = 100,    # Maximum number of messages per connection queue\n                 history_size: int = 50,    # Number of broadcast messages to keep in history\n                 default_timeout: float = 0.1   # Default timeout in seconds for queue operations\n                )\n    \"Manages SSE connections and broadcasting without UI dependencies.\"\n    \n    def __init__(self,\n                     max_queue_size: int = 100,    # Maximum number of messages per connection queue\n                     history_size: int = 50,    # Number of broadcast messages to keep in history\n                     default_timeout: float = 0.1   # Default timeout in seconds for queue operations\n                    )\n        \"Initialize the broadcast manager with connection pooling and message history.\"\n    \n    async def register_connection(\n            self,\n            queue: Optional[asyncio.Queue] = None  # Optional pre-existing queue, creates new one if not provided\n        ) -&gt; asyncio.Queue:  # The queue associated with this connection\n        \"Register a new SSE connection.\"\n    \n    async def unregister_connection(\n            self,\n            queue: asyncio.Queue  # The queue to unregister\n        )\n        \"Unregister an SSE connection.\"\n    \n    async def broadcast(self, \n                           event_type: str,   # Type of event being broadcast\n                           data: Dict[str, Any], # Data to broadcast\n                           timeout: Optional[float] = None # Optional timeout override for this broadcast\n                           ) -&gt; int: # Number of successfully notified connections\n        \"Broadcast a message to all connected clients.\"\n    \n    def on_connect(\n            self,\n            callback: Callable  # Function to call when a new connection is registered\n        )\n        \"Register a callback for new connections.\"\n    \n    def on_disconnect(\n            self,\n            callback: Callable  # Function to call when a connection is unregistered\n        )\n        \"Register a callback for disconnections.\"\n    \n    def on_broadcast(\n            self,\n            callback: Callable  # Function to call before broadcasting (can modify messages)\n        )\n        \"Register a callback for broadcasts (can modify messages).\"\n    \n    def connection_count(\n            self\n        ) -&gt; int:  # Number of active connections\n        \"Get the current number of active connections.\"\n    \n    def get_history(\n            self,\n            limit: Optional[int] = None  # Optional limit on number of messages to return\n        ) -&gt; list[Dict[str, Any]]:  # List of historical broadcast messages\n        \"Get broadcast history.\"\n\n\n\nSSEEventDispatcher (dispatcher.ipynb)\n\nEvent routing system with namespace support, pattern matching, and middleware pipeline. Enables decoupled event handling with priority-based execution and wildcard routing.\n\n\nImport\nfrom cjm_fasthtml_sse.dispatcher import (\n    SSEEvent,\n    SSEEventDispatcher\n)\n\n\nClasses\n@dataclass\nclass SSEEvent:\n    \"Represents an SSE event with metadata.\"\n    \n    type: str\n    data: Dict[str, Any]\n    namespace: Optional[str]\n    priority: int = 0\n    timestamp: Optional[str]\n    \n    def full_type(self):\n            \"\"\"Get the full event type including namespace.\"\"\"\n            if self.namespace\n        \"Get the full event type including namespace.\"\nclass SSEEventDispatcher:\n    def __init__(self):\n        \"\"\"Initialize the event dispatcher with empty handler registry.\"\"\"\n        self._handlers: Dict[str, List[tuple[int, Callable]]] = {}\n    \"Decoupled event routing system with namespace support, middleware, filtering, and priority-based handling.\"\n    \n    def __init__(self):\n            \"\"\"Initialize the event dispatcher with empty handler registry.\"\"\"\n            self._handlers: Dict[str, List[tuple[int, Callable]]] = {}\n        \"Initialize the event dispatcher with empty handler registry.\"\n    \n    def register_namespace(\n            self,\n            namespace: str  # Namespace name to register for event organization\n        )\n        \"Register a namespace for event organization.\"\n    \n    def on(\n            self,\n            event_pattern: str,  # Event pattern (supports wildcards: *, **)\n            priority: int = 0  # Handler priority (higher runs first)\n        )\n        \"Decorator to register an event handler with pattern matching.\"\n    \n    def add_handler(\n            self,\n            event_pattern: str,  # Event pattern (e.g., \"job:*\", \"**:completed\")\n            handler: Callable,  # Handler function\n            priority: int = 0  # Handler priority\n        )\n        \"Add an event handler with pattern matching support.\"\n    \n    def add_middleware(\n            self,\n            middleware: Callable  # Function that takes (event, next) and calls next(event)\n        )\n        \"Add middleware that processes events before handlers.\"\n    \n    def add_filter(\n            self,\n            filter_func: Callable[[SSEEvent], bool]  # Function that returns True to process event\n        )\n        \"Add a filter to control which events are processed.\"\n    \n    def add_transformer(\n            self,\n            transformer: Callable[[SSEEvent], SSEEvent]  # Function that transforms an event\n        )\n        \"Add a transformer to modify events before processing.\"\n    \n    async def dispatch(\n            self,\n            event: Union[SSEEvent, Dict[str, Any]]  # Event to dispatch (SSEEvent or dict)\n        ) -&gt; List[Any]:  # List of handler results\n        \"Dispatch an event through the processing pipeline.\"\n    \n    def clear_handlers(\n            self,\n            pattern: Optional[str] = None  # Specific pattern to clear, or None for all\n        )\n        \"Clear handlers for a specific pattern or all handlers.\"\n\n\n\nUI helpers & utilities (helpers.ipynb)\n\nUtility functions and decorators for common SSE patterns in FastHTML. Includes the @sse_element\n\n\nImport\nfrom cjm_fasthtml_sse.helpers import (\n    oob_swap,\n    oob_element,\n    sse_element,\n    oob_update,\n    cleanup_sse_on_unload,\n    get_htmx_idx,\n    insert_htmx_sse_ext\n)\n\n\nFunctions\ndef oob_swap(\n    \"Add OOB swap attributes to an element.\"\ndef oob_element(\n    element_id: str,  # ID of the target element\n    content: Any,    # Content to swap\n    swap_type: str = \"innerHTML\"  # Type of swap\n)\n    \"Create a wrapper element for OOB swap.\"\ndef sse_element(\n    htmx_sse: HTMXSSEConnector,\n    endpoint: str, \n    events: Optional[Union[str, List[str]]] = None, # Event name(s) to listen for from SSE stream\n    auto_close: bool = True,  # Whether to auto-close on completion\n    swap_type: str = \"message\" # How to swap content\n)\n    \"Decorator to add SSE capabilities to any element.\"\ndef oob_update(\n    element_id: str,  # Target element ID\n    content: Any,  # Content to swap\n    swap_type: str = \"innerHTML\"  # Type of swap (innerHTML, outerHTML, etc.)\n)\n    \"Create an out-of-band update element.\"\ndef cleanup_sse_on_unload(\n) -&gt; FT:  # FastHTML element (Script) for cleanup\n    \"Add script to cleanup SSE connections on page unload.\"\ndef get_htmx_idx(\n    hdrs: List  # List of header elements to search\n) -&gt; int:  # Index of HTMX script or -1 if not found\n    \"Find the index of HTMX script in headers list.\"\ndef insert_htmx_sse_ext(\n    hdrs: List  # List of header elements to modify\n)\n    \"Add HTMX SSE extension after HTMX script\"\n\n\n\nHTMXSSEConnector (htmx.ipynb)\n\nHTMX-specific SSE integration helpers for FastHTML. Simplifies adding SSE attributes, creating SSE-enabled elements, and managing HTMX SSE connections.\n\n\nImport\nfrom cjm_fasthtml_sse.htmx import (\n    HTMXSSEConnector\n)\n\n\nClasses\nclass HTMXSSEConnector:\n    \"Provides helper functions for setting up HTMX SSE connections without hardcoding specific implementations.\"\n    \n    def add_sse_attrs(element,\n                          endpoint: str,  # SSE endpoint URL to connect to\n                          events: Optional[Union[str, List[str]]] = None,\n                          swap_type: str = \"message\",  # How to swap content (message, innerHTML, outerHTML, etc.)\n                          auto_reconnect: bool = True)\n        \"Add SSE connection attributes to an element.\"\n    \n    def create_sse_element(element_type=Div,\n                              endpoint: str = None,  # SSE endpoint URL to connect to\n                              element_id: str = None,  # Optional ID for the element\n                              events: Optional[Union[str, List[str]]] = None,\n                              swap_type: str = \"message\",  # How to swap content when messages are received\n                              hidden: bool = False,  # Whether to hide the element initially\n                              **kwargs)\n        \"Create an element with SSE connection configured.\"\n    \n    def sse_progress_element(job_id: str,\n                                endpoint_template: str = \"/stream_job_progress?job_id={job_id}\",  # URL template for the SSE endpoint\n                                element_id_template: str = \"progress-span-{job_id}\",  # Template for generating element ID\n                                initial_content=None)\n        \"Create an SSE-enabled progress element.\"\n    \n    def sse_status_element(job_id: str,\n                              endpoint_template: str = \"/stream_job_status?job_id={job_id}\",  # URL template for the SSE endpoint\n                              element_id_template: str = \"status-span-{job_id}\",  # Template for generating element ID\n                              initial_content=None)\n        \"Create an SSE-enabled status element.\"\n    \n    def create_sse_monitor_script(\n            config: Dict[str, Any]  # Configuration dictionary for monitoring setup\n        ) -&gt; FT:  # Script element with monitoring code\n        \"Create a monitoring script for SSE connections.\"\n\n\n\nConnection monitoring & config (monitoring.ipynb)\n\nConnection monitoring and debugging tools for SSE applications. Provides configurable status indicators, automatic reconnection, and visibility change handling.\n\n\nImport\nfrom cjm_fasthtml_sse.monitoring import (\n    SSEMonitorConfig,\n    create_sse_monitor\n)\n\n\nFunctions\ndef create_sse_monitor(\n    htmx_sse: HTMXSSEConnector,\n    config: SSEMonitorConfig  # SSEMonitorConfig instance\n) -&gt; FT:  # Script element with monitoring code\n    \"Create a connection monitor with the specified configuration.\"\n\n\nClasses\n@dataclass\nclass SSEMonitorConfig:\n    \"Configuration for SSE connection monitoring.\"\n    \n    sse_element_id: str = 'sse-connection'\n    status_element_id: str = 'connection-status'\n    auto_reconnect: bool = True\n    reconnect_delay: int = 3000\n    debug: bool = False\n    heartbeat_timeout: int = 30000\n    status_indicators: Optional[Dict[str, str]]\n\n\n\nSSEElementUpdater (updater.ipynb)\n\nFlexible element update system for building out-of-band (OOB) swap elements. Register handlers by event type and compose updates without coupling to specific UI components.\n\n\nImport\nfrom cjm_fasthtml_sse.updater import (\n    SSEElementUpdater\n)\n\n\nClasses\nclass SSEElementUpdater:\n    def __init__(self):\n        \"\"\"Initialize the updater with empty handler registry.\"\"\"\n        self._handlers: Dict[str, List[Callable]] = {}\n    \"Builds OOB swap elements without hardcoding UI components.\"\n    \n    def __init__(self):\n            \"\"\"Initialize the updater with empty handler registry.\"\"\"\n            self._handlers: Dict[str, List[Callable]] = {}\n        \"Initialize the updater with empty handler registry.\"\n    \n    def register(\n            self,\n            event_type: str,  # The event type to handle\n            priority: int = 0  # Handler priority (higher numbers run first)\n        ): # Decorator function\n        \"Decorator to register an update handler for a specific event type.\"\n    \n    def register_handler(\n            self,\n            event_type: str,  # The event type to handle\n            handler: Callable,  # The handler function\n            priority: int = 0  # Handler priority (higher numbers run first)\n        )\n        \"Register an update handler programmatically.\"\n    \n    def set_default_handler(\n            self,\n            handler: Callable  # The default handler function\n        )\n        \"Set a default handler for unregistered event types.\"\n    \n    def add_preprocessor(\n            self,\n            processor: Callable  # Function that processes (event_type, data) and returns modified data\n        )\n        \"Add a preprocessor that runs before handlers.\"\n    \n    def add_postprocessor(\n            self,\n            processor: Callable  # Function that processes elements list and returns modified elements\n        )\n        \"Add a postprocessor that runs after handlers.\"\n    \n    def create_elements(\n            self,\n            event_type: str,  # The type of event\n            data: Dict[str, Any]  # Event data\n        ) -&gt; List[Any]:  # List of elements to be sent via SSE\n        \"Create elements for a given event type and data.\"\n    \n    def clear_handlers(\n            self,\n            event_type: Optional[str] = None  # Optional specific event type to clear\n        )\n        \"Clear handlers for a specific event type or all handlers.\"\n    \n    def get_registered_events(\n            self\n        ) -&gt; List[str]:  # List of event types with registered handlers\n        \"Get list of registered event types.\"",
+    "crumbs": [
+      "cjm-fasthtml-sse"
+    ]
+  },
+  {
+    "objectID": "helpers.html",
+    "href": "helpers.html",
+    "title": "UI helpers & utilities",
+    "section": "",
+    "text": "source\n\noob_swap\n\n oob_swap (element:Any, swap_type:str='outerHTML',\n           target_id:Optional[str]=None)\n\nAdd OOB swap attributes to an element.\n\n\n\n\n\n\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\nelement\nAny\n\nThe element to add OOB swap to\n\n\nswap_type\nstr\nouterHTML\nType of swap (innerHTML, outerHTML, beforebegin, afterend, etc.)\n\n\ntarget_id\nOptional\nNone\nOptional target ID (uses element’s ID if not specified)\n\n\n\n\nsource\n\n\noob_element\n\n oob_element (element_id:str, content:Any, swap_type:str='innerHTML')\n\nCreate a wrapper element for OOB swap.\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\nelement_id\nstr\n\nID of the target element\n\n\ncontent\nAny\n\nContent to swap\n\n\nswap_type\nstr\ninnerHTML\nType of swap\n\n\n\n\nsource\n\n\nsse_element\n\n sse_element (htmx_sse:cjm_fasthtml_sse.htmx.HTMXSSEConnector,\n              endpoint:str, events:Union[str,List[str],NoneType]=None,\n              auto_close:bool=True, swap_type:str='message')\n\nDecorator to add SSE capabilities to any element.\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\nhtmx_sse\nHTMXSSEConnector\n\n\n\n\nendpoint\nstr\n\n\n\n\nevents\nUnion\nNone\nEvent name(s) to listen for from SSE stream\n\n\nauto_close\nbool\nTrue\nWhether to auto-close on completion\n\n\nswap_type\nstr\nmessage\nHow to swap content\n\n\n\n\nsource\n\n\noob_update\n\n oob_update (element_id:str, content:Any, swap_type:str='innerHTML')\n\nCreate an out-of-band update element.\n\n\n\n\n\n\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\nelement_id\nstr\n\nTarget element ID\n\n\ncontent\nAny\n\nContent to swap\n\n\nswap_type\nstr\ninnerHTML\nType of swap (innerHTML, outerHTML, etc.)\n\n\n\n\nsource\n\n\ncleanup_sse_on_unload\n\n cleanup_sse_on_unload ()\n\nAdd script to cleanup SSE connections on page unload.\n\nsource\n\n\nget_htmx_idx\n\n get_htmx_idx (hdrs:List)\n\nFind the index of HTMX script in headers list.\n\n\n\n\nType\nDetails\n\n\n\n\nhdrs\nList\nList of header elements to search\n\n\nReturns\nint\nIndex of HTMX script or -1 if not found\n\n\n\n\nsource\n\n\ninsert_htmx_sse_ext\n\n insert_htmx_sse_ext (hdrs:List)\n\nAdd HTMX SSE extension after HTMX script\n\n\n\n\nType\nDetails\n\n\n\n\nhdrs\nList\nList of header elements to modify",
+    "crumbs": [
+      "UI helpers & utilities"
+    ]
+  },
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "Core SSEBroadcastManager",
+    "section": "",
+    "text": "source\n\nSSEBroadcastManager\n\n SSEBroadcastManager (max_queue_size:int=100, history_size:int=50,\n                      default_timeout:float=0.1)\n\nManages SSE connections and broadcasting without UI dependencies.\n\n\n\n\n\n\n\n\n\n\nType\nDefault\nDetails\n\n\n\n\nmax_queue_size\nint\n100\nMaximum number of messages per connection queue\n\n\nhistory_size\nint\n50\nNumber of broadcast messages to keep in history\n\n\ndefault_timeout\nfloat\n0.1\nDefault timeout in seconds for queue operations\n\n\n\n\n# Initialize the SSE Broadcast Manager\nsse_manager = SSEBroadcastManager(\n    max_queue_size=100,\n    history_size=50,\n    default_timeout=0.1\n)",
+    "crumbs": [
+      "Core SSEBroadcastManager"
+    ]
+  },
+  {
+    "objectID": "dispatcher.html",
+    "href": "dispatcher.html",
+    "title": "SSEEventDispatcher",
+    "section": "",
+    "text": "source\n\nSSEEvent\n\n SSEEvent (type:str, data:Dict[str,Any], namespace:Optional[str]=None,\n           priority:int=0, timestamp:Optional[str]=None)\n\nRepresents an SSE event with metadata.\n\nsource\n\n\nSSEEventDispatcher\n\n SSEEventDispatcher ()\n\nDecoupled event routing system with namespace support, middleware, filtering, and priority-based handling.\n\nevent_dispatcher = SSEEventDispatcher()",
+    "crumbs": [
+      "SSEEventDispatcher"
+    ]
+  },
+  {
+    "objectID": "monitoring.html",
+    "href": "monitoring.html",
+    "title": "Connection monitoring & config",
+    "section": "",
+    "text": "source\n\nSSEMonitorConfig\n\n SSEMonitorConfig (sse_element_id:str='sse-connection',\n                   status_element_id:str='connection-status',\n                   auto_reconnect:bool=True, reconnect_delay:int=3000,\n                   debug:bool=False, heartbeat_timeout:int=30000,\n                   status_indicators:Optional[Dict[str,str]]=None)\n\nConfiguration for SSE connection monitoring.\n\nsource\n\n\ncreate_sse_monitor\n\n create_sse_monitor (htmx_sse:cjm_fasthtml_sse.htmx.HTMXSSEConnector,\n                     config:__main__.SSEMonitorConfig)\n\nCreate a connection monitor with the specified configuration.\n\n\n\n\nType\nDetails\n\n\n\n\nhtmx_sse\nHTMXSSEConnector\n\n\n\nconfig\nSSEMonitorConfig\nSSEMonitorConfig instance\n\n\nReturns\nFT\nScript element with monitoring code",
+    "crumbs": [
+      "Connection monitoring & config"
+    ]
+  },
+  {
+    "objectID": "updater.html",
+    "href": "updater.html",
+    "title": "SSEElementUpdater",
+    "section": "",
+    "text": "source\n\nSSEElementUpdater\n\n SSEElementUpdater ()\n\nBuilds OOB swap elements without hardcoding UI components.\n\nelement_updater = SSEElementUpdater()",
+    "crumbs": [
+      "SSEElementUpdater"
+    ]
+  }
+]
