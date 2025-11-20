@@ -83,12 +83,11 @@ def cleanup_sse_on_unload(
     return Script("""window.addEventListener('beforeunload',()=>{document.querySelectorAll('[sse-connect]').forEach(e=>{e['htmx-internal-data']?.sseEventSource?.close()});htmx?.findAll('[sse-connect]').forEach(e=>htmx.trigger(e,'htmx:sseClose'))});""")
 
 # %% ../nbs/helpers.ipynb 9
-# 
 def get_htmx_idx(
     hdrs: List  # List of header elements to search
 ) -> int:  # Index of HTMX script or -1 if not found
     """Find the index of HTMX script in headers list."""
-    return next((i for i, hdr in enumerate(hdrs) if (hdr.attrs.get('src') or '').endswith('htmx.min.js')), -1)
+    return next((i for i, hdr in enumerate(hdrs) if (hdr.attrs.get('src') or '').endswith(('htmx.min.js', 'htmx.js'))), -1)
 
 # %% ../nbs/helpers.ipynb 10
 def insert_htmx_sse_ext(
